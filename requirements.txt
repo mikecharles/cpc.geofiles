@@ -1,0 +1,9 @@
+bumpversion
+wheel
+flake8
+coverage
+pytest
+pdoc
+cryptography
+PyYAML
+
