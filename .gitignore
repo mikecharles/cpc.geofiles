@@ -63,3 +63,10 @@ target/
 
 # Development
 /test.py
+
+# GitHub Pages
+_site
+.bundle
+.sass-cache
+Gemfile.lock
+.DS_Store
