@@ -71,4 +71,5 @@ dist: clean
 	ls -l dist
 
 install: clean
+	conda install --yes --file conda-requirements.txt
 	python setup.py install
