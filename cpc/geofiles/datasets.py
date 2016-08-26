@@ -38,8 +38,10 @@ class EnsembleForecast(Forecast):
     def __init__(self, ens=None, ens_mean=None, ens_spread=None):
         Forecast.__init__(self)
         self.ens = ens
-        self.ens_mean = ens_mean
-        self.ens_spread = ens_spread
+
+
+    # def ens_mean(self):
+    #     return
 
 
 class DeterministicForecast(Forecast):
