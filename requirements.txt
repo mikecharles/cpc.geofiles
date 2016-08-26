@@ -6,4 +6,5 @@ pytest
 pdoc
 cryptography
 PyYAML
+pydoc-markdown
 
