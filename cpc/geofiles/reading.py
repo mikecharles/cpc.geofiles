@@ -13,7 +13,8 @@ import numpy as np
 # This package
 from .exceptions import ReadingError
 
-def read_grib(file, grib_type, variable, level, grid=None, yrev=False, grep_fhr=None, debug=False):
+
+def read_grib(file, grib_type, grib_var, grib_level, grid=None, yrev=False, grep_fhr=None, debug=False):
     """
     Reads a record from a grib file
 
@@ -73,13 +74,13 @@ def read_grib(file, grib_type, variable, level, grid=None, yrev=False, grep_fhr=
     # Set the name of the wgrib program to call
     if grib_type == 'grib1':
         wgrib_call = 'wgrib "{}" | grep ":{}:" | grep ":{}:" | grep -P "{}" | wgrib ' \
-                     '-i "{}" -nh -bin -o "{}"'.format(file, variable, level,
-                                           grep_fhr_str, file, temp_file)
+                     '-i "{}" -nh -bin -o "{}"'.format(file, grib_var, grib_level,
+                                                       grep_fhr_str, file, temp_file)
     elif grib_type == 'grib2':
         # Note that the binary data is written to stdout
         wgrib_call = 'wgrib2 "{}" -match "{}" -match "{}" -match "{}" -end ' \
                      '-order we:sn -no_header -inv /dev/null -bin -'.format(
-            file, variable, level, grep_fhr_str)
+            file, grib_var, grib_level, grep_fhr_str)
     else:
         raise ReadingError(__name__ + ' requires grib_type to be grib1 or grib2')
     if debug:
