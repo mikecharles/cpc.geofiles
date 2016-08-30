@@ -30,7 +30,7 @@ def all_int_to_str(input):
         raise ValueError('input must be a list of ints')
 
 
-def load_day(**kwargs):
+def load_ens_fcst_day(**kwargs):
     date = kwargs['date']
     members = kwargs['members']
     fhrs = kwargs['fhrs']
