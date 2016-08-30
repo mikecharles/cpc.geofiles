@@ -30,52 +30,6 @@ def all_int_to_str(input):
         raise ValueError('input must be a list of ints')
 
 
-def load_ens_fcst_day(**kwargs):
-    date = kwargs['date']
-    members = kwargs['members']
-    fhrs = kwargs['fhrs']
-    file_template = kwargs['file_template']
-    data_type = kwargs['data_type']
-    geogrid = kwargs['geogrid']
-    fhr_stat = kwargs['fhr_stat']
-    yrev = kwargs['yrev']
-    grib_var = kwargs['grib_var']
-    grib_level = kwargs['grib_level']
-    remove_dup_grib_fhrs = kwargs['remove_dup_grib_fhrs']
-    debug = kwargs['debug']
-
-    # Initialize data array
-    data = np.nan * np.empty((len(members), geogrid.num_y * geogrid.num_x))
-
-    # Split date into components
-    yyyy, mm, dd = date[0:4], date[4:6], date[6:8]
-    if len(date) == 10:
-        cc = date[8:10]
-    else:
-        cc = '00'
-    for m, member in enumerate(members):
-        data_f = np.nan * np.empty((len(fhrs), geogrid.num_y * geogrid.num_x))
-        for f, fhr in enumerate(fhrs):
-            # Replace variables in file template
-            kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'fhr': fhr, 'member': member}
-            file = file_template.format(**kwargs)
-            # Read in data from file
-            if data_type in ['grib1', 'grib2']:
-                try:
-                    data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
-                                          debug=debug)
-                except ReadingError:
-                    raise LoadingError('File {} couldn\'t be loaded...', file)
-            # Take stat over fhr
-            if fhr_stat == 'mean':
-                data[m] = np.nanmean(data_f, axis=0)
-            elif fhr_stat == 'std':
-                data[m] = np.nanstd(data_f, axis=0)
-            else:
-                raise LoadingError('fhr_stat must be either mean or std', file)
-    return data
-
-
 def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogrid,
                    fhr_stat='mean', yrev=False, grib_var=None, grib_level=None,
                    remove_dup_grib_fhrs=False, debug=False):
@@ -159,7 +113,7 @@ def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogri
     dataset = EnsembleForecast()
 
     # ----------------------------------------------------------------------------------------------
-    # Initialize arrays for the EnsembleForecast Dataset
+    # Initialize arrays for the EnsembleForecast Dataset the full ensemble data array
     #
     dataset.ens = np.nan * np.empty(
         (len(issued_dates), len(members), geogrid.num_y * geogrid.num_x)
@@ -172,15 +126,44 @@ def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogri
     members = all_int_to_str(members)
 
     # ----------------------------------------------------------------------------------------------
+    # Set dates loaded
+    #
+    dataset.dates_loaded |= set(issued_dates)
+
+    # ----------------------------------------------------------------------------------------------
     # Loop over date, members, and fhrs
     #
     for d, date in enumerate(issued_dates):
-        try:
-            dataset.ens[d] = load_ens_fcst_day(**locals())
-            dataset.dates_loaded.append(date)
-        except LoadingError as e:
-            dataset.missing_dates.append(date)
-            dataset.missing_files.append(e.file)
+        # Split date into components
+        yyyy, mm, dd = date[0:4], date[4:6], date[6:8]
+        if len(date) == 10:
+            cc = date[8:10]
+        else:
+            cc = '00'
+        for m, member in enumerate(members):
+            # Initialize an array for a single day, all fhrs
+            data_f = np.nan * np.empty((len(fhrs), geogrid.num_y * geogrid.num_x))
+            for f, fhr in enumerate(fhrs):
+                # Replace variables in file template
+                kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'fhr': fhr, 'member': member}
+                file = file_template.format(**kwargs)
+                # Read in data from file
+                if data_type in ['grib1', 'grib2']:
+                    try:
+                        data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
+                                              debug=debug)
+                    except ReadingError:
+                        data_f[f] = np.nan * np.empty(geogrid.num_y * geogrid.num_x)
+                        dataset.dates_with_missing_files.add(date)
+                        dataset.missing_files.add(file)
+                # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
+                # don't trust this mean/std
+                if fhr_stat == 'mean':
+                    dataset.ens[d] = np.mean(data_f, axis=0)
+                elif fhr_stat == 'std':
+                    dataset.ens[d] = np.std(data_f, axis=0)
+                else:
+                    raise LoadingError('fhr_stat must be either mean or std', file)
 
     return dataset
 
