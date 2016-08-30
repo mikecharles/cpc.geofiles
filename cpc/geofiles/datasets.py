@@ -10,6 +10,8 @@ class Dataset:
     def __init__(self, data_type=None):
         self.data_type = data_type
         self.missing_dates = []
+        self.missing_files = []
+        self.dates_loaded = []
 
 
 class Observation(Dataset):

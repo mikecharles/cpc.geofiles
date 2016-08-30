@@ -65,14 +65,14 @@ def load_day(**kwargs):
                     data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
                                           debug=debug)
                 except ReadingError:
-                    raise LoadingError('File {} couldn\'t be loaded...')
+                    raise LoadingError('File {} couldn\'t be loaded...', file)
             # Take stat over fhr
             if fhr_stat == 'mean':
                 data[m] = np.nanmean(data_f, axis=0)
             elif fhr_stat == 'std':
                 data[m] = np.nanstd(data_f, axis=0)
             else:
-                raise LoadingError('fhr_stat must be either mean or std')
+                raise LoadingError('fhr_stat must be either mean or std', file)
     return data
 
 
@@ -176,9 +176,11 @@ def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogri
     #
     for d, date in enumerate(issued_dates):
         try:
-            dataset.ens[d] = load_day(**locals())
-        except LoadingError:
+            dataset.ens[d] = load_ens_fcst_day(**locals())
+            dataset.dates_loaded.append(date)
+        except LoadingError as e:
             dataset.missing_dates.append(date)
+            dataset.missing_files.append(e.file)
 
     return dataset
 

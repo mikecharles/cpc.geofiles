@@ -63,7 +63,7 @@ def read_grib(file, grib_type, grib_var, grib_level, grid=None, yrev=False, grep
     """
     # Make sure grib file exists first
     if not os.path.isfile(file):
-        raise ReadingError('Grib file not found')
+        raise ReadingError('Grib file not found', file)
     # Generate a temporary file name
     temp_file = str(uuid.uuid4()) + '.bin'
     # Set the grep_fhr string
