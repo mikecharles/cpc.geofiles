@@ -141,7 +141,7 @@ def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogri
         else:
             cc = '00'
         for m, member in enumerate(members):
-            # Initialize an array for a single day, all fhrs
+            # Initialize an array for a single day, single member, all fhrs
             data_f = np.nan * np.empty((len(fhrs), geogrid.num_y * geogrid.num_x))
             for f, fhr in enumerate(fhrs):
                 # Replace variables in file template
@@ -156,14 +156,14 @@ def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogri
                         data_f[f] = np.nan * np.empty(geogrid.num_y * geogrid.num_x)
                         dataset.dates_with_missing_files.add(date)
                         dataset.missing_files.add(file)
-                # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
-                # don't trust this mean/std
-                if fhr_stat == 'mean':
-                    dataset.ens[d] = np.mean(data_f, axis=0)
-                elif fhr_stat == 'std':
-                    dataset.ens[d] = np.std(data_f, axis=0)
-                else:
-                    raise LoadingError('fhr_stat must be either mean or std', file)
+            # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
+            # don't trust this mean/std
+            if fhr_stat == 'mean':
+                dataset.ens[d, m] = np.mean(data_f, axis=0)
+            elif fhr_stat == 'std':
+                dataset.ens[d, m] = np.std(data_f, axis=0)
+            else:
+                raise LoadingError('fhr_stat must be either mean or std', file)
 
     return dataset
 
