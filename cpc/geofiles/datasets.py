@@ -46,6 +46,16 @@ class EnsembleForecast(Forecast):
         self._ens_mean = ens_mean
 
     def get_ens_mean(self):
+        """
+        Returns the ensemble mean
+
+        Since ens_mean is defined as a property which calls this method, it won't take up memory
+        by default
+
+        ### Returns
+
+        - array: ensemble mean
+        """
         return np.nanmean(self.ens, axis=1) if self._ens_mean is None else self._ens_mean
 
     ens_mean = property(get_ens_mean)
