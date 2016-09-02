@@ -153,7 +153,8 @@ def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogri
                         data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
                                               debug=debug)
                     except ReadingError:
-                        data_f[f] = np.nan * np.empty(geogrid.num_y * geogrid.num_x)
+                        # Set this day to missing
+                        data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
                         dataset.dates_with_missing_files.add(date)
                         dataset.missing_files.add(file)
             # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
@@ -285,7 +286,8 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
                     data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
                                           debug=debug)
                 except ReadingError:
-                    data_f[f] = np.nan * np.empty(geogrid.num_y * geogrid.num_x)
+                    # Set this day to missing
+                    data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
                     dataset.dates_with_missing_files.add(date)
                     dataset.missing_files.add(file)
         # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
