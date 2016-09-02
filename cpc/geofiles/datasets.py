@@ -90,7 +90,7 @@ class Climatology(Dataset):
     """
     Climatology Dataset
     """
-    def __init__(self, clim=None):
+    def __init__(self, climo=None):
         Dataset.__init__(self, data_type='climatology')
         self.data_type = 'climatology'
-        self.clim = clim
+        self.climo = climo
