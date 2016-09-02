@@ -2,6 +2,9 @@
 Defines a Dataset object. Datasets contain one or more data arrays, QC info, etc.
 """
 
+# Third-party
+import numpy as np
+
 
 class Dataset:
     """
@@ -9,6 +12,9 @@ class Dataset:
     """
     def __init__(self, data_type=None):
         self.data_type = data_type
+        self.dates_with_missing_files = set()
+        self.missing_files = set()
+        self.dates_loaded = set()
 
 
 class Observation(Dataset):
@@ -37,8 +43,38 @@ class EnsembleForecast(Forecast):
     def __init__(self, ens=None, ens_mean=None, ens_spread=None):
         Forecast.__init__(self)
         self.ens = ens
-        self.ens_mean = ens_mean
-        self.ens_spread = ens_spread
+        self._ens_mean = ens_mean
+        self._ens_spread = ens_spread
+
+    def get_ens_mean(self):
+        """
+        Returns the ensemble mean
+
+        Since ens_mean is defined as a property which calls this method, it won't take up memory
+        by default
+
+        ### Returns
+
+        - array: ensemble mean
+        """
+        return np.nanmean(self.ens, axis=1) if self._ens_mean is None else self._ens_mean
+
+    ens_mean = property(get_ens_mean)
+
+    def get_ens_spread(self):
+        """
+        Returns the ensemble spread
+
+        Since ens_spread is defined as a property which calls this method, it won't take up memory
+        by default
+
+        ### Returns
+
+        - array: ensemble spread
+        """
+        return np.nan if self._ens_spread is None else self._ens_spread
+
+    ens_spread = property(get_ens_spread)
 
 
 class DeterministicForecast(Forecast):

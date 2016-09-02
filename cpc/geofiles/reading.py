@@ -10,8 +10,11 @@ import os
 # Third-party
 import numpy as np
 
+# This package
+from .exceptions import ReadingError
 
-def read_grib(file, grib_type, variable, level, grid=None, yrev=False, grep_fhr=None, debug=False):
+
+def read_grib(file, grib_type, grib_var, grib_level, grid=None, yrev=False, grep_fhr=None, debug=False):
     """
     Reads a record from a grib file
 
@@ -38,8 +41,8 @@ def read_grib(file, grib_type, variable, level, grid=None, yrev=False, grep_fhr=
 
     ### Raises
 
-    - IOError: if wgrib has a problem reading the grib and/or writing the temp file
-    - IOError: if no grib record is found
+    - ReadingError: if wgrib has a problem reading the grib and/or writing the temp file
+    - ReadingError: if no grib record is found
 
     ### Examples
 
@@ -60,7 +63,7 @@ def read_grib(file, grib_type, variable, level, grid=None, yrev=False, grep_fhr=
     """
     # Make sure grib file exists first
     if not os.path.isfile(file):
-        raise IOError('Grib file not found')
+        raise ReadingError('Grib file not found', file)
     # Generate a temporary file name
     temp_file = str(uuid.uuid4()) + '.bin'
     # Set the grep_fhr string
@@ -71,15 +74,15 @@ def read_grib(file, grib_type, variable, level, grid=None, yrev=False, grep_fhr=
     # Set the name of the wgrib program to call
     if grib_type == 'grib1':
         wgrib_call = 'wgrib "{}" | grep ":{}:" | grep ":{}:" | grep -P "{}" | wgrib ' \
-                     '-i "{}" -nh -bin -o "{}"'.format(file, variable, level,
-                                           grep_fhr_str, file, temp_file)
+                     '-i "{}" -nh -bin -o "{}"'.format(file, grib_var, grib_level,
+                                                       grep_fhr_str, file, temp_file)
     elif grib_type == 'grib2':
         # Note that the binary data is written to stdout
         wgrib_call = 'wgrib2 "{}" -match "{}" -match "{}" -match "{}" -end ' \
                      '-order we:sn -no_header -inv /dev/null -bin -'.format(
-            file, variable, level, grep_fhr_str)
+            file, grib_var, grib_level, grep_fhr_str)
     else:
-        raise IOError(__name__ + ' requires grib_type to be grib1 or grib2')
+        raise ReadingError(__name__ + ' requires grib_type to be grib1 or grib2')
     if debug:
         print('wgrib command: {}'.format(wgrib_call))
     # Generate a wgrib call
@@ -93,14 +96,14 @@ def read_grib(file, grib_type, variable, level, grid=None, yrev=False, grep_fhr=
     except Exception as e:
         if grib_type == 'grib1':
             os.remove(temp_file)
-        raise IOError('Couldn\'t read {} file: {}'.format(grib_type, str(e)))
+        raise ReadingError('Couldn\'t read {} file: {}'.format(grib_type, str(e)))
     # Read in the binary data
     if grib_type == 'grib1':
         data = np.fromfile(temp_file, dtype=np.float32)
     else:
         data = np.frombuffer(bytearray(proc.stdout.read()), dtype='float32')
     if data.size == 0:
-        raise IOError('No grib record found')
+        raise ReadingError('No grib record found')
     # Delete the temporary file
     if grib_type == 'grib1':
         os.remove(temp_file)
