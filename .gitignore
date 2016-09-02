@@ -63,6 +63,7 @@ target/
 
 # Development
 /test.py
+/test.png
 
 # GitHub Pages
 _site
