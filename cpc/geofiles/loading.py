@@ -13,7 +13,7 @@ to make that much simpler.
 import numpy as np
 
 # This package
-from .datasets import EnsembleForecast
+from .datasets import EnsembleForecast, DeterministicForecast
 from .reading import read_grib
 from .exceptions import LoadingError, ReadingError
 
@@ -168,8 +168,136 @@ def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogri
     return dataset
 
 
-def load_dtrm_fcsts():
-    pass
+def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_stat='mean',
+                    yrev=False, grib_var=None, grib_level=None, remove_dup_grib_fhrs=False,
+                    debug=False):
+    """
+    Loads deterministic forecast data
+
+    Data is loaded for a given list of dates and forecast hours. The file template can contain
+    any of the following bracketed variables:
+
+    - {yyyy}
+    - {mm}
+    - {dd}
+    - {cc}
+    - {fhr}
+
+    Within a loop over the dates and fhrs, the bracketed variables above are replaced with the
+    appropriate value.
+
+    Parameters
+    ----------
+
+    - issued_dates (list of strings): list of issued dates in YYYYMMDD or YYYYMMDDCC format - if
+      YYYYMMDD, the cycle is assumed to be 00
+    - fhrs (list of numbers or strings): list of fhrs to load
+    - file_template (string): file template used to construct file names for each date,
+      fhr and member
+    - data_type (string): data type (bin, grib1 or grib2)
+    - geogrid (GeoGrid): GeoGrid associated with the data
+    - fhr_stat (string): statistic to calculate over the forecast hour dimension (mean [default]
+      or sum)
+    - yrev (boolean): whether fcst data is reversed in the y-direction, and should be flipped
+      when loaded (default: False)
+    - grib_var (string): grib variable name (for grib files only)
+    - grib_level (string): grib level name (for grib files only)
+    - remove_dup_grib_fhrs (boolean): whether to remove potential duplicate fhrs from the grib
+      files (default: False) - sets the `grep_fhr` parameter to the current fhr when calling
+      `read_grib()`, which greps for the fhr in the given grib file - this is useful for gribs
+      that may for some reason have duplicate records for a given variable but with different
+      fhrs. This way you can get the record for the correct fhr.
+    - debug (boolean): if True the file data is loaded from will be printed out (default: False)
+
+    Returns
+    -------
+
+    If `collapse=True`, a tuple of 2 NumPy arrays will be returned (ensemble
+    mean and ensemble spread). For example:
+
+        >>> dataset = load_ens_fcsts(..., collapse=True)  # doctest: +SKIP
+
+    If `collapse=False`, a single NumPy array will be returned. For example:
+
+        >>> dataset = load_ens_fcsts(..., collapse=False))  # doctest: +SKIP
+
+    Examples
+    --------
+
+    Load ensemble mean and spread from forecasts initialized on a given
+    month/day from 1981-2010
+
+        >>> from string_utils.dates import generate_date_list
+        >>> from data_utils.gridded.grid import Grid
+        >>> from data_utils.gridded.loading import load_obs
+        >>> dates = generate_date_list('19810525', '20100525', interval='years')
+        >>> file_tmplt = '/path/to/fcsts/%Y/%m/%d/gefs_%Y%m%d_00z_f{fhr}_m{member}.grb'
+        >>> data_type = 'grib2'
+        >>> grid = Grid('1deg-global')
+        >>> variable = 'TMP'
+        >>> level = '2 m above ground'
+        >>> num_members = 11
+        >>> dataset = \  # doctest: +SKIP
+        load_ens_fcsts(dates, file_template=file_tmplt, data_type=data_type,  # doctest: +SKIP
+        ...            grid=grid, variable=variable, level=level,  # doctest: +SKIP
+        ...            fhr_range=(150, 264), num_members=num_members,  # doctest: +SKIP
+        ...            collapse=True)  # doctest: +SKIP
+    """
+    # ----------------------------------------------------------------------------------------------
+    # Create a new DeterministicForecast Dataset
+    #
+    dataset = DeterministicForecast()
+
+    # ----------------------------------------------------------------------------------------------
+    # Initialize array for the DeterministicForecast Dataset
+    #
+    dataset.fcst = np.nan * np.empty((len(issued_dates), geogrid.num_y * geogrid.num_x))
+
+    # ----------------------------------------------------------------------------------------------
+    # Convert fhrs to strings (if necessary)
+    #
+    fhrs = all_int_to_str(fhrs)
+
+    # ----------------------------------------------------------------------------------------------
+    # Set dates loaded
+    #
+    dataset.dates_loaded |= set(issued_dates)
+
+    # ----------------------------------------------------------------------------------------------
+    # Loop over date and fhrs
+    #
+    for d, date in enumerate(issued_dates):
+        # Split date into components
+        yyyy, mm, dd = date[0:4], date[4:6], date[6:8]
+        if len(date) == 10:
+            cc = date[8:10]
+        else:
+            cc = '00'
+        # Initialize an array for a single day, all fhrs
+        data_f = np.nan * np.empty((len(fhrs), geogrid.num_y * geogrid.num_x))
+        for f, fhr in enumerate(fhrs):
+            # Replace variables in file template
+            kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'fhr': fhr}
+            file = file_template.format(**kwargs)
+            # Read in data from file
+            if data_type in ['grib1', 'grib2']:
+                try:
+                    data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
+                                          debug=debug)
+                except ReadingError:
+                    data_f[f] = np.nan * np.empty(geogrid.num_y * geogrid.num_x)
+                    dataset.dates_with_missing_files.add(date)
+                    dataset.missing_files.add(file)
+        # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
+        # don't trust this mean/std
+        if fhr_stat == 'mean':
+            dataset.fcst[d] = np.mean(data_f, axis=0)
+        elif fhr_stat == 'std':
+            dataset.fcst[d] = np.std(data_f, axis=0)
+        else:
+            raise LoadingError('fhr_stat must be either mean or std', file)
+
+    return dataset
 
 
 def load_obs():
