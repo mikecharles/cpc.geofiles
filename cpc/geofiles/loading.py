@@ -13,7 +13,7 @@ to make that much simpler.
 import numpy as np
 
 # This package
-from .datasets import EnsembleForecast, DeterministicForecast
+from .datasets import EnsembleForecast, DeterministicForecast, Observation
 from .reading import read_grib
 from .exceptions import LoadingError, ReadingError
 
@@ -306,8 +306,138 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
     return dataset
 
 
-def load_obs():
-    pass
+def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yrev=False,
+             grib_var=None, grib_level=None, debug=False):
+    """
+    Loads observation data
+
+    Data is loaded for a given list of dates. The file template can contain any of the following
+    bracketed variables:
+
+    - {yyyy}
+    - {mm}
+    - {dd}
+    - {hh}
+
+    Within a loop over the dates, the bracketed variables above are replaced with the appropriate
+    value.
+
+    Parameters
+    ----------
+
+    - valid_dates (list of strings): list of valid dates in YYYYMMDD or YYYYMMDDHH format
+    - file_template (string): file template used to construct file names for each date,
+      fhr and member
+    - data_type (string): data type (bin, grib1 or grib2)
+    - geogrid (GeoGrid): GeoGrid associated with the data
+    - record_num (int): binary record containing the desired variable - if None then the file is
+      assumed to be a single record (default)
+    - yrev (boolean): whether fcst data is reversed in the y-direction, and should be flipped
+      when loaded (default: False)
+    - grib_var (string): grib variable name (for grib files only)
+    - grib_level (string): grib level name (for grib files only)
+    - debug (boolean): if True the file data is loaded from will be printed out (default: False)
+
+    Returns
+    -------
+
+    If `collapse=True`, a tuple of 2 NumPy arrays will be returned (ensemble
+    mean and ensemble spread). For example:
+
+        >>> dataset = load_ens_fcsts(..., collapse=True)  # doctest: +SKIP
+
+    If `collapse=False`, a single NumPy array will be returned. For example:
+
+        >>> dataset = load_ens_fcsts(..., collapse=False))  # doctest: +SKIP
+
+    Examples
+    --------
+
+    Load ensemble mean and spread from forecasts initialized on a given
+    month/day from 1981-2010
+
+        >>> from string_utils.dates import generate_date_list
+        >>> from data_utils.gridded.grid import Grid
+        >>> from data_utils.gridded.loading import load_obs
+        >>> dates = generate_date_list('19810525', '20100525', interval='years')
+        >>> file_tmplt = '/path/to/fcsts/%Y/%m/%d/gefs_%Y%m%d_00z_f{fhr}_m{member}.grb'
+        >>> data_type = 'grib2'
+        >>> grid = Grid('1deg-global')
+        >>> variable = 'TMP'
+        >>> level = '2 m above ground'
+        >>> num_members = 11
+        >>> dataset = \  # doctest: +SKIP
+        load_ens_fcsts(dates, file_template=file_tmplt, data_type=data_type,  # doctest: +SKIP
+        ...            grid=grid, variable=variable, level=level,  # doctest: +SKIP
+        ...            fhr_range=(150, 264), num_members=num_members,  # doctest: +SKIP
+        ...            collapse=True)  # doctest: +SKIP
+    """
+    # ----------------------------------------------------------------------------------------------
+    # Create a new Observation Dataset
+    #
+    dataset = Observation()
+
+    # ----------------------------------------------------------------------------------------------
+    # Initialize array for the Observation Dataset
+    #
+    dataset.obs = np.nan * np.empty((len(valid_dates), geogrid.num_y * geogrid.num_x))
+
+    # ----------------------------------------------------------------------------------------------
+    # Set dates loaded
+    #
+    dataset.dates_loaded |= set(valid_dates)
+
+    # ----------------------------------------------------------------------------------------------
+    # Loop over date
+    #
+    for d, date in enumerate(valid_dates):
+        # Split date into components
+        yyyy, mm, dd = date[0:4], date[4:6], date[6:8]
+        if len(date) == 10:
+            cc = date[8:10]
+        else:
+            cc = '00'
+        # Replace variables in file template
+        kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc}
+        file = file_template.format(**kwargs)
+        # Read in data from file
+        if data_type in ['grib1', 'grib2']:
+            try:
+                # Read grib with read_grib()
+                dataset.obs[d] = read_grib(file, data_type, grib_var, grib_level, geogrid,
+                                           debug=debug)
+            except ReadingError:
+                # Set this day to missing
+                dataset.obs[d] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
+                # Add this date to the list of dates with missing files
+                dataset.dates_with_missing_files.add(date)
+                # Add this file to the list of missing files
+                dataset.missing_files.add(file)
+        elif data_type in ['bin', 'binary']:
+            try:
+                # Load data from file
+                dataset.obs[d] = np.fromfile(file, dtype='float32')
+                # Determine number of records in the binary file
+                num_records = int(dataset.obs[d].size / (geogrid.num_y * geogrid.num_x))
+                # Reshape data and extract the appropriate record - if record_num is specified,
+                # extract that record number, otherwise just take the entire array
+                if record_num is not None:
+                    dataset.obs[d] = dataset.obs[d].reshape(
+                        num_records, geogrid.num_y * geogrid.num_x
+                    )[record_num]
+                else:
+                    dataset.obs[d] = dataset.obs[d].reshape(
+                        num_records, geogrid.num_y * geogrid.num_x
+                    )
+            except:
+                # Set this day to missing
+                dataset.obs[d] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
+                # Add this date to the list of dates with missing files
+                dataset.dates_with_missing_files.add(date)
+                # Add this file to the list of missing files
+                dataset.missing_files.add(file)
+
+    return dataset
 
 
 def load_clim():
