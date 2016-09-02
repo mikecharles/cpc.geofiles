@@ -1,5 +1,5 @@
 class LoadingError(Exception):
-    def __init__(self, message, file, *args, **kwargs):
+    def __init__(self, message, file=None, *args, **kwargs):
         """
         Custom Exception for the loading module
 
@@ -14,7 +14,7 @@ class LoadingError(Exception):
 
 
 class ReadingError(Exception):
-    def __init__(self, message, file, *args, **kwargs):
+    def __init__(self, message, file=None, *args, **kwargs):
         """
         Custom Exception for the loading module
 
