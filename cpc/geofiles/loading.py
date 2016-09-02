@@ -13,7 +13,7 @@ to make that much simpler.
 import numpy as np
 
 # This package
-from .datasets import EnsembleForecast, DeterministicForecast, Observation
+from .datasets import EnsembleForecast, DeterministicForecast, Observation, Climatology
 from .reading import read_grib
 from .exceptions import LoadingError, ReadingError
 
@@ -440,6 +440,118 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
     return dataset
 
 
-def load_clim():
-    pass
+def load_climos(valid_days, file_template, geogrid, num_ptiles=None, debug=False):
+    """
+    Loads climatology data
+
+    Data is loaded for a given range of days of the year. Currently the data must be in binary
+    format with the dimensions (ptiles x grid points) when num_ptiles is an integer, and (grid
+    points [1-d]) when num_ptiles is None
+
+    - {mm}
+    - {dd}
+
+    Within a loop over the days, the bracketed variables above are replaced with the appropriate
+    value.
+
+    Parameters
+    ----------
+
+    - valid_days (list of strings): list of days of the year to load - must be formatted as MMDD
+      (eg. [0501, 0502, 0503, 0504, 0505])
+    - file_template (string): file template used to construct file names for each date,
+      fhr and member
+    - geogrid (GeoGrid): GeoGrid associated with the data
+    - record_num (int): binary record containing the desired variable - if None then the file is
+      assumed to be a single record (default)
+    - num_ptiles (int or None): number of percentiles expected in the data file - if None then
+    the file is assumed to be a mean or standard deviation instead of percentiles (default: None)
+    - debug (boolean): if True the file data is loaded from will be printed out (default: False)
+
+    Returns
+    -------
+
+    - Climatology object
+
+        >>> dataset = load_ens_fcsts(..., collapse=True)  # doctest: +SKIP
+
+    If `collapse=False`, a single NumPy array will be returned. For example:
+
+        >>> dataset = load_ens_fcsts(..., collapse=False))  # doctest: +SKIP
+
+    Examples
+    --------
+
+    Load ensemble mean and spread from forecasts initialized on a given
+    month/day from 1981-2010
+
+        >>> from string_utils.dates import generate_date_list
+        >>> from data_utils.gridded.grid import Grid
+        >>> from data_utils.gridded.loading import load_obs
+        >>> dates = generate_date_list('19810525', '20100525', interval='years')
+        >>> file_tmplt = '/path/to/fcsts/%Y/%m/%d/gefs_%Y%m%d_00z_f{fhr}_m{member}.grb'
+        >>> data_type = 'grib2'
+        >>> grid = Grid('1deg-global')
+        >>> variable = 'TMP'
+        >>> level = '2 m above ground'
+        >>> num_members = 11
+        >>> dataset = \  # doctest: +SKIP
+        load_ens_fcsts(dates, file_template=file_tmplt, data_type=data_type,  # doctest: +SKIP
+        ...            grid=grid, variable=variable, level=level,  # doctest: +SKIP
+        ...            fhr_range=(150, 264), num_members=num_members,  # doctest: +SKIP
+        ...            collapse=True)  # doctest: +SKIP
+    """
+    # ----------------------------------------------------------------------------------------------
+    # Create a new Climatology Dataset
+    #
+    dataset = Climatology()
+
+    # ----------------------------------------------------------------------------------------------
+    # Initialize array for the Climatology Dataset
+    #
+    # If num_ptiles is an integer, add a ptile dimension to the climo array
+    if num_ptiles is not None:
+        try:
+            dataset.climo = np.nan * np.empty((len(valid_days), num_ptiles,
+                                               geogrid.num_y * geogrid.num_x))
+        except:
+            raise LoadingError('num_ptiles must be an integer or None')
+    else:
+        dataset.climo = np.nan * np.empty((len(valid_days), geogrid.num_y * geogrid.num_x))
+
+    # ----------------------------------------------------------------------------------------------
+    # Set dates loaded
+    #
+    dataset.dates_loaded |= set(valid_days)
+
+    # ----------------------------------------------------------------------------------------------
+    # Loop over date
+    #
+    for d, date in enumerate(valid_days):
+        # Split date into components
+        mm, dd = date[0:2], date[2:4]
+        # Replace variables in file template
+        kwargs = {'mm': mm, 'dd': dd}
+        file = file_template.format(**kwargs)
+        # Read in data from file
+        try:
+            # Load data from file
+            if num_ptiles is not None:
+                dataset.climo[d] = np.fromfile(file, 'float32').reshape(
+                    num_ptiles, geogrid.num_y * geogrid.num_x)
+            else:
+                dataset.climo[d] = np.fromfile(file, 'float32').reshape(
+                    geogrid.num_y * geogrid.num_x)
+        except:
+            # Set this day to missing
+            if num_ptiles:
+                dataset.climo[d] = np.full((num_ptiles, geogrid.num_y * geogrid.num_x), np.nan)
+            else:
+                dataset.climo[d] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
+            # Add this date to the list of dates with missing files
+            dataset.dates_with_missing_files.add(date)
+            # Add this file to the list of missing files
+            dataset.missing_files.add(file)
+
+    return dataset
 
