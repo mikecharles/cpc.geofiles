@@ -2,6 +2,9 @@
 Defines a Dataset object. Datasets contain one or more data arrays, QC info, etc.
 """
 
+# Third-party
+import numpy as np
+
 
 class Dataset:
     """
@@ -40,10 +43,12 @@ class EnsembleForecast(Forecast):
     def __init__(self, ens=None, ens_mean=None, ens_spread=None):
         Forecast.__init__(self)
         self.ens = ens
+        self._ens_mean = ens_mean
 
+    def get_ens_mean(self):
+        return np.nanmean(self.ens, axis=1) if self._ens_mean is None else self._ens_mean
 
-    # def ens_mean(self):
-    #     return
+    ens_mean = property(get_ens_mean)
 
 
 class DeterministicForecast(Forecast):
