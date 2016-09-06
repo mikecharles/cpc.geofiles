@@ -14,7 +14,7 @@ import numpy as np
 from .exceptions import ReadingError
 
 
-def read_grib(file, grib_type, grib_var, grib_level, grid=None, yrev=False, grep_fhr=None, debug=False):
+def read_grib(file, grib_type, grib_var, grib_level, geogrid, yrev=False, grep_fhr=None, debug=False):
     """
     Reads a record from a grib file
 
@@ -29,7 +29,7 @@ def read_grib(file, grib_type, grib_var, grib_level, grid=None, yrev=False, grep
     - grib_type (string): type of grib file ('grib1', 'grib2')
     - variable (string): name of the variable in the grib record (ex. TMP, UGRD, etc.)
     - level (string): name of the level (ex. '2 m above ground', '850 mb', etc.)
-    - grid (GeoGrid): GeoGrid the data should be placed on
+    - geogrid (GeoGrid): GeoGrid the data should be placed on
     - yrev (optional): option to flip the data in the y-direction (eg. ECMWF grib files)
     - grep_fhr (optional): fhr to grep grib file for - this is useful for gribs that may for some
       reason have duplicate records for a given variable but with different fhrs. This way you
@@ -111,9 +111,9 @@ def read_grib(file, grib_type, grib_var, grib_level, grid=None, yrev=False, grep
     if yrev:
         # Reshape into 2 dimensions
         try:
-            data = np.reshape(data, (grid.num_y, grid.num_x))
+            data = np.reshape(data, (geogrid.num_y, geogrid.num_x))
         except AttributeError:
-            raise ValueError('The yrev parameter requires that the grid parameter be defined')
+            raise ValueError('The yrev parameter requires that the geogrid parameter be defined')
         # Flip
         data = np.flipud(data)
         # Reshape back into 1 dimension
