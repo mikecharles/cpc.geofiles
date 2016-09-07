@@ -13,7 +13,7 @@ type: apidoc
 
 
 
-### <span class="function">\__init__(self, clim=None)</span> 
+### <span class="function">\__init__(self, climo=None)</span> 
 
 
 
@@ -38,6 +38,38 @@ type: apidoc
 
 
 ### <span class="function">\__init__(self, ens=None, ens_mean=None, ens_spread=None)</span> 
+
+
+
+##### *`abstract property`* `ens_mean` 
+
+
+##### *`abstract property`* `ens_spread` 
+
+
+### <span class="function">get_ens_mean(self)</span> 
+
+> Returns the ensemble mean
+> 
+> Since ens_mean is defined as a property which calls this method, it won't take up memory
+> by default
+> 
+> ### Returns
+> 
+> - array: ensemble mean
+
+
+
+### <span class="function">get_ens_spread(self)</span> 
+
+> Returns the ensemble spread
+> 
+> Since ens_spread is defined as a property which calls this method, it won't take up memory
+> by default
+> 
+> ### Returns
+> 
+> - array: ensemble spread
 
 
 
