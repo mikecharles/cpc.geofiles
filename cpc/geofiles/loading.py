@@ -247,6 +247,14 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
         ...            collapse=True)  # doctest: +SKIP
     """
     # ----------------------------------------------------------------------------------------------
+    # Make sure grib parameters are set if data_type is grib1 or grib2
+    #
+    if data_type in ['grib1', 'grib2']:
+        if grib_var is None or grib_level is None:
+            raise LoadingError('When data_type is grib1 or grib2, grib_var and grib_level must be '
+                               'defined')
+
+    # ----------------------------------------------------------------------------------------------
     # Create a new DeterministicForecast Dataset
     #
     dataset = DeterministicForecast()
