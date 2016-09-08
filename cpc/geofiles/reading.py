@@ -6,6 +6,7 @@ Contains methods for reading gridded data.
 import subprocess
 import uuid
 import os
+import shutil
 
 # Third-party
 import numpy as np
@@ -73,10 +74,16 @@ def read_grib(file, grib_type, grib_var, grib_level, geogrid, yrev=False, grep_f
         grep_fhr_str = '.*'
     # Set the name of the wgrib program to call
     if grib_type == 'grib1':
+        # Make sure wgrib is installed
+        if not shutil.which('wgrib'):
+            raise ReadingError('wgrib not installed')
         wgrib_call = 'wgrib "{}" | grep ":{}:" | grep ":{}:" | grep -P "{}" | wgrib ' \
                      '-i "{}" -nh -bin -o "{}"'.format(file, grib_var, grib_level,
                                                        grep_fhr_str, file, temp_file)
     elif grib_type == 'grib2':
+        # Make sure wgrib2 is installed
+        if not shutil.which('wgrib2'):
+            raise ReadingError('wgrib2 not installed')
         # Note that the binary data is written to stdout
         wgrib_call = 'wgrib2 "{}" -match "{}" -match "{}" -match "{}" -end ' \
                      '-order we:sn -no_header -inv /dev/null -bin -'.format(
