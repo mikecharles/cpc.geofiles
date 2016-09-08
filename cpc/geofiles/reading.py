@@ -30,7 +30,7 @@ def read_grib(file, grib_type, grib_var, grib_level, geogrid, yrev=False, grep_f
     - grib_type (string): type of grib file ('grib1', 'grib2')
     - variable (string): name of the variable in the grib record (ex. TMP, UGRD, etc.)
     - level (string): name of the level (ex. '2 m above ground', '850 mb', etc.)
-    - geogrid (GeoGrid): GeoGrid the data should be placed on
+    - geogrid (Geogrid): Geogrid the data should be placed on
     - yrev (optional): option to flip the data in the y-direction (eg. ECMWF grib files)
     - grep_fhr (optional): fhr to grep grib file for - this is useful for gribs that may for some
       reason have duplicate records for a given variable but with different fhrs. This way you

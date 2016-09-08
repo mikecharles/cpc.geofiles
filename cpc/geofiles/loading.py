@@ -59,7 +59,7 @@ def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogri
     - file_template (string): file template used to construct file names for each date,
       fhr and member
     - data_type (string): data type (bin, grib1 or grib2)
-    - geogrid (GeoGrid): GeoGrid associated with the data
+    - geogrid (Geogrid): Geogrid associated with the data
     - fhr_stat (string): statistic to calculate over the forecast hour dimension (mean [default]
       or sum)
     - yrev (boolean): whether fcst data is reversed in the y-direction, and should be flipped
@@ -198,7 +198,7 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
     - file_template (string): file template used to construct file names for each date,
       fhr and member
     - data_type (string): data type (bin, grib1 or grib2)
-    - geogrid (GeoGrid): GeoGrid associated with the data
+    - geogrid (Geogrid): Geogrid associated with the data
     - fhr_stat (string): statistic to calculate over the forecast hour dimension (mean [default]
       or sum)
     - yrev (boolean): whether fcst data is reversed in the y-direction, and should be flipped
@@ -329,7 +329,7 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
     - file_template (string): file template used to construct file names for each date,
       fhr and member
     - data_type (string): data type (bin, grib1 or grib2)
-    - geogrid (GeoGrid): GeoGrid associated with the data
+    - geogrid (Geogrid): Geogrid associated with the data
     - record_num (int): binary record containing the desired variable - if None then the file is
       assumed to be a single record (default)
     - yrev (boolean): whether fcst data is reversed in the y-direction, and should be flipped
@@ -461,7 +461,7 @@ def load_climos(valid_days, file_template, geogrid, num_ptiles=None, debug=False
       (eg. [0501, 0502, 0503, 0504, 0505])
     - file_template (string): file template used to construct file names for each date,
       fhr and member
-    - geogrid (GeoGrid): GeoGrid associated with the data
+    - geogrid (Geogrid): Geogrid associated with the data
     - record_num (int): binary record containing the desired variable - if None then the file is
       assumed to be a single record (default)
     - num_ptiles (int or None): number of percentiles expected in the data file - if None then
