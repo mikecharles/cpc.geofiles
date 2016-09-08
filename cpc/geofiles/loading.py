@@ -416,6 +416,8 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
         elif data_type in ['bin', 'binary']:
             try:
                 # Load data from file
+                if debug:
+                    print('Binary file being read: {}'.format(file))
                 dataset.obs[d] = np.fromfile(file, dtype='float32')
                 # Determine number of records in the binary file
                 num_records = int(dataset.obs[d].size / (geogrid.num_y * geogrid.num_x))
