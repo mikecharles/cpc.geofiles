@@ -341,36 +341,22 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
     Returns
     -------
 
-    If `collapse=True`, a tuple of 2 NumPy arrays will be returned (ensemble
-    mean and ensemble spread). For example:
-
-        >>> dataset = load_ens_fcsts(..., collapse=True)  # doctest: +SKIP
-
-    If `collapse=False`, a single NumPy array will be returned. For example:
-
-        >>> dataset = load_ens_fcsts(..., collapse=False))  # doctest: +SKIP
+    - Observation object containing the observation data and some QC data
 
     Examples
     --------
 
-    Load ensemble mean and spread from forecasts initialized on a given
-    month/day from 1981-2010
+    Load a few days of observation data
 
-        >>> from string_utils.dates import generate_date_list
-        >>> from data_utils.gridded.grid import Grid
-        >>> from data_utils.gridded.loading import load_obs
-        >>> dates = generate_date_list('19810525', '20100525', interval='years')
-        >>> file_tmplt = '/path/to/fcsts/%Y/%m/%d/gefs_%Y%m%d_00z_f{fhr}_m{member}.grb'
-        >>> data_type = 'grib2'
-        >>> grid = Grid('1deg-global')
-        >>> variable = 'TMP'
-        >>> level = '2 m above ground'
-        >>> num_members = 11
-        >>> dataset = \  # doctest: +SKIP
-        load_ens_fcsts(dates, file_template=file_tmplt, data_type=data_type,  # doctest: +SKIP
-        ...            grid=grid, variable=variable, level=level,  # doctest: +SKIP
-        ...            fhr_range=(150, 264), num_members=num_members,  # doctest: +SKIP
-        ...            collapse=True)  # doctest: +SKIP
+        >>> from cpc.geogrids import Geogrid
+        >>> from cpc.geofiles.loading import load_obs
+        >>> valid_dates = ['20150101', '20150102', '20150103']
+        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/tmean_01d_{yyyy}{mm}{dd}.bin'
+        >>> data_type = 'binary'
+        >>> geogrid = Geogrid('1deg-global')
+        >>> dataset = load_obs(valid_dates, file_template, data_type, geogrid)  # doctest: +SKIP
+        >>> print(dataset.obs.shape, dataset.obs[:, 0])
+        (3, 65160) [-28.48999405 -28.04499435 -27.81749725]
     """
     # ----------------------------------------------------------------------------------------------
     # Create a new Observation Dataset
