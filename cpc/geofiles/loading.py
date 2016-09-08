@@ -394,11 +394,11 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
         # Split date into components
         yyyy, mm, dd = date[0:4], date[4:6], date[6:8]
         if len(date) == 10:
-            cc = date[8:10]
+            hh = date[8:10]
         else:
-            cc = '00'
+            hh = '00'
         # Replace variables in file template
-        kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc}
+        kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'hh': hh}
         file = file_template.format(**kwargs)
         # Read in data from file
         if data_type in ['grib1', 'grib2']:
