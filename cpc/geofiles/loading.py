@@ -85,15 +85,16 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
 
         >>> from cpc.geogrids import Geogrid
         >>> from cpc.geofiles.loading import load_ens_fcsts
-        >>> valid_dates = ['20160101', '20160102', '20160103']
+        >>> issued_dates = ['20160101', '20160102', '20160103']
         >>> fhrs = range(0, 120, 6)
         >>> members = range(0, 21)
-        >>> file_template = '/cpc/model_realtime/raw/gefs/06h/{yyyy}/{mm}/{dd}/{cc}/gefs_{yyyy}{mm}{dd}_{cc}z_f{fhr}_m{member}.grb2'
+        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/{cc}/gefs_{yyyy}{mm}{dd}_{cc}z_f{fhr}_m{member}.grb2'
         >>> data_type = 'grib2'
         >>> geogrid = Geogrid('1deg-global')
         >>> grib_var = 'TMP'
         >>> grib_level = '2 m above ground'
-        >>> dataset = load_ens_fcsts(valid_dates, fhrs, members, file_template, data_type, geogrid, grib_var=grib_var, grib_level=grib_level)
+        >>> dataset = load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogrid,
+                                     grib_var=grib_var, grib_level=grib_level)
         >>> print(dataset.ens.shape)
         (3, 21, 65160)
         >>> print(dataset.ens[:, :, 0])
@@ -234,14 +235,15 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
 
         >>> from cpc.geogrids import Geogrid
         >>> from cpc.geofiles.loading import load_dtrm_fcsts
-        >>> valid_dates = ['20160101', '20160102', '20160103']
+        >>> issued_dates = ['20160101', '20160102', '20160103']
         >>> fhrs = range(0, 120, 6)
         >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/{cc}/gfs_{yyyy}{mm}{dd}_{cc}z_f{fhr}.grb2'
         >>> data_type = 'grib2'
         >>> geogrid = Geogrid('0.5-deg-global-center-aligned')
         >>> grib_var = 'TMP'
         >>> grib_level = '2 m above ground'
-        >>> dataset = load_dtrm_fcsts(valid_dates, fhrs, file_template, data_type, geogrid, grib_var=grib_var, grib_level=grib_level)
+        >>> dataset = load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid,
+                                      grib_var=grib_var, grib_level=grib_level)
         >>> print(dataset.fcst.shape, dataset.fcst[:, 0])
         (3, 259920) [ 246.64699936  246.50599976  245.97450104]
     """
