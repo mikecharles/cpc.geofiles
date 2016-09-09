@@ -30,7 +30,7 @@ def all_int_to_str(input):
         raise ValueError('input must be a list of ints')
 
 
-def load_ens_fcsts(issued_dates, members, fhrs, file_template, data_type, geogrid,
+def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogrid,
                    fhr_stat='mean', yrev=False, grib_var=None, grib_level=None,
                    remove_dup_grib_fhrs=False, debug=False):
     """
