@@ -4,7 +4,7 @@ title: Geospatial Files
 ---
 
 What is this package?
----------------------
+=====================
 
 This package makes it simple to load geospatial data from files. Currently binary and grib1/grib2 files are supported. Data can be loaded across a range of dates, forecast hours (for forecast data), and ensemble members (for ensemble forecast data).
 
@@ -13,11 +13,12 @@ This package uses `wgrib` and `wgrib2` in order to read grib files, and must be 
     $ python -c "from cpc.geofiles import test_wgrib ; test_wgrib()"
 
 How do I read in data?
-----------------------
+======================
 
 Data can either be read in for a single file, or over a range of dates, forecast hours, or ensemble members.
 
-### Reading data from a single file
+Reading data from a single file
+-------------------------------
 
 The `reading` module contains a function for reading grib1 & grib2 files. Binary files are simple to read in without this module. For example:
 
@@ -61,7 +62,8 @@ Once you have the variable and level for the record you want to read in, you can
 (65160,) 237.4
 ```
 
-### Reading data from multiple files
+Reading data from multiple files
+--------------------------------
 
 If you want to "load a dataset" (read in data from multiple files), you can use the `loading` module. The `loading` module loops over dates (for all types of datasets), forecast hours (for forecast datasets) and members (for ensemble forecast datasets), and reads in data across the range of all of those parameters.
 
@@ -76,7 +78,7 @@ Data is loaded into a `Dataset` object, from which you can extract the data itse
     - EnsembleForecast
   - Climatology
 
-#### Loading observation data
+### Loading observation data
 
 To load observation data, use the `loading.load_obs()` function. You'll need to specify the following parameters:
 
@@ -104,7 +106,7 @@ Here's an example of how to load a few days of observation data:
 (3, 65160) [-28.48999405 -28.04499435 -27.81749725]
 ```
 
-#### Loading deterministic forecast data
+### Loading deterministic forecast data
 
 To load deterministic forecast data, use the `loading.load_dtrm_fcsts()` function. You'll need to specify the following parameters:
 
@@ -139,7 +141,7 @@ Here's an example of how to load a few days of deterministic forecast data:
 (3, 259920) [ 246.64699936  246.50599976  245.97450104]
 ```
 
-#### Loading ensemble forecast data
+### Loading ensemble forecast data
 
 To load ensemble forecast data, use the `loading.load_ens_fcsts()` function. You'll need to specify the following parameters:
 
@@ -196,7 +198,7 @@ Here's an example of how to load a few days of ensemble forecast data:
 [ 246.67957157  246.33497583  246.28476225]
 ```
 
-#### Loading climatology data
+### Loading climatology data
 
 To load climatology data, use the `loading.load_obs()` function. You'll need to specify the following parameters:
 
