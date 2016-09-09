@@ -464,8 +464,6 @@ def load_climos(valid_days, file_template, geogrid, num_ptiles=None, debug=False
     - file_template (string): file template used to construct file names for each date,
       fhr and member
     - geogrid (Geogrid): Geogrid associated with the data
-    - record_num (int): binary record containing the desired variable - if None then the file is
-      assumed to be a single record (default)
     - num_ptiles (int or None): number of percentiles expected in the data file - if None then
     the file is assumed to be a mean or standard deviation instead of percentiles (default: None)
     - debug (boolean): if True the file data is loaded from will be printed out (default: False)
