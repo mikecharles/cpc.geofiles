@@ -29,11 +29,11 @@ The `reading` module contains a function for reading grib1 & grib2 files. Binary
 
 Since reading in grib data is a little less straightforward, this module makes it easier. The function that reads in grib data is called `read_grib()`. You'll need to specify the following parameters in order to read in a file:
 
-1. `file` - name of the grib file to read from
-2. `grib_type` - type of grib file ('grib1', 'grib2')
-3. `grib_var` - name of the variable in the grib record (ex. TMP, UGRD, etc.)
-4. `grib_level` - name of the level (ex. '2 m above ground', '850 mb', etc.)
-5. `geogrid` - [GeoGrid](https://mikecharles.github.io/cpc.geogrids/) the data fits on
+- `file` - name of the grib file to read from
+- `grib_type` - type of grib file ('grib1', 'grib2')
+- `grib_var` - name of the variable in the grib record (ex. TMP, UGRD, etc.)
+- `grib_level` - name of the level (ex. '2 m above ground', '850 mb', etc.)
+- `geogrid` - [GeoGrid](https://mikecharles.github.io/cpc.geogrids/) the data fits on
 
 `grib_var` and `grib_level` are used as strings to match grib records. You can see all the grib records in your file using `wgrib` or `wgrib2`. For example, for a concise listing of records:
 
@@ -82,14 +82,14 @@ Data is loaded into a `Dataset` object, from which you can extract the data itse
 
 To load observation data, use the `loading.load_obs()` function. You'll need to specify the following parameters:
 
-1. `valid_dates` - list of valid dates in YYYYMMDD or YYYYMMDDHH format (if HH is not supplied, it is assumed to be '00')
-2. `file_template` - file template used to construct file names for each date - it can contain any of the following bracketed variables:
+- `valid_dates` - list of valid dates in YYYYMMDD or YYYYMMDDHH format (if HH is not supplied, it is assumed to be '00')
+- `file_template` - file template used to construct file names for each date - it can contain any of the following bracketed variables:
    - `{yyyy}`
    - `{mm}`
    - `{dd}`
    - `{hh}`
-3. `data_type` - data type (binary, grib1 or grib2)
-4. `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+- `data_type` - data type (binary, grib1 or grib2)
+- `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
 
 Some optional parameters are:
 
@@ -119,16 +119,16 @@ Here's an example of how to load a few days of observation data:
 
 To load deterministic forecast data, use the `loading.load_dtrm_fcsts()` function. You'll need to specify the following parameters:
 
-1. `issued_dates` - list of issued dates in YYYYMMDD or YYYYMMDDCC format (if CC [cycle] is not supplied, it is assumed to be '00')
-2. `fhrs` - list of forecast hours to load - either a list of strings, or a list of ints; if a list of ints, numbers will be zero-padded to the number of characters of the highest fhr
-3. `file_template` - file template used to construct file names for each date - it can contain any of the following bracketed variables:
+- `issued_dates` - list of issued dates in YYYYMMDD or YYYYMMDDCC format (if CC [cycle] is not supplied, it is assumed to be '00')
+- `fhrs` - list of forecast hours to load - either a list of strings, or a list of ints; if a list of ints, numbers will be zero-padded to the number of characters of the highest fhr
+- `file_template` - file template used to construct file names for each date - it can contain any of the following bracketed variables:
    - `{yyyy}`
    - `{mm}`
    - `{dd}`
    - `{cc}`
    - `{fhr}`
-4. `data_type` - data type (binary, grib1 or grib2)
-5. `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+- `data_type` - data type (binary, grib1 or grib2)
+- `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
 
 Some optional parameters are:
 
@@ -163,17 +163,17 @@ Here's an example of how to load a few days of deterministic forecast data:
 
 To load ensemble forecast data, use the `loading.load_ens_fcsts()` function. You'll need to specify the following parameters:
 
-1. `issued_dates` - list of issued dates in YYYYMMDD or YYYYMMDDCC format (if CC [cycle] is not supplied, it is assumed to be '00')
-2. `fhrs` - list of forecast hours to load - either a list of strings, or a list of ints; if a list of ints, numbers will be zero-padded to the number of characters of the highest fhr
-3. `members` - list of members to load - either a list of strings, or a list of ints; if a list of ints, numbers will be zero-padded to the number of characters of the highest member number
-4. `file_template` - file template used to construct file names for each date - it can contain any of the following bracketed variables:
+- `issued_dates` - list of issued dates in YYYYMMDD or YYYYMMDDCC format (if CC [cycle] is not supplied, it is assumed to be '00')
+- `fhrs` - list of forecast hours to load - either a list of strings, or a list of ints; if a list of ints, numbers will be zero-padded to the number of characters of the highest fhr
+- `members` - list of members to load - either a list of strings, or a list of ints; if a list of ints, numbers will be zero-padded to the number of characters of the highest member number
+- `file_template` - file template used to construct file names for each date - it can contain any of the following bracketed variables:
    - `{yyyy}`
    - `{mm}`
    - `{dd}`
    - `{cc}`
    - `{fhr}`
-5. `data_type` - data type (binary, grib1 or grib2)
-6. `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+- `data_type` - data type (binary, grib1 or grib2)
+- `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
 
 Some optional parameters are:
 
@@ -229,11 +229,11 @@ Here's an example of how to load a few days of ensemble forecast data:
 
 To load climatology data, use the `loading.load_obs()` function. You'll need to specify the following parameters:
 
-1. `valid_days` - list of valid dates in MMDD format
-2. `file_template` - file template used to construct file names for each date - it can contain any of the following bracketed variables:
+- `valid_days` - list of valid dates in MMDD format
+- `file_template` - file template used to construct file names for each date - it can contain any of the following bracketed variables:
    - `{mm}`
    - `{dd}`
-4. `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+- `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
 
 Some optional parameters are:
 
