@@ -95,7 +95,8 @@ Here's an example of how to load a few days of observation data:
 >>> from cpc.geogrids import Geogrid
 >>> from cpc.geofiles.loading import load_obs
 >>> valid_dates = ['20150101', '20150102', '20150103']
->>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/tmean_01d_{yyyy}{mm}{dd}.bin'
+>>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/'\
+                    'tmean_01d_{yyyy}{mm}{dd}.bin'
 >>> data_type = 'binary'
 >>> geogrid = Geogrid('1deg-global')
 >>> dataset = load_obs(valid_dates, file_template, data_type, geogrid)
@@ -125,12 +126,15 @@ Here's an example of how to load a few days of deterministic forecast data:
 >>> from cpc.geofiles.loading import load_dtrm_fcsts
 >>> valid_dates = ['20160101', '20160102', '20160103']
 >>> fhrs = range(0, 120, 6)
->>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/{cc}/gfs_{yyyy}{mm}{dd}_{cc}z_f{fhr}.grb2'
+>>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/{cc}/' \
+                    'gfs_{yyyy}{mm}{dd}_{cc}z_f{fhr}.grb2'
 >>> data_type = 'grib2'
 >>> geogrid = Geogrid('0.5-deg-global-center-aligned')
 >>> grib_var = 'TMP'
 >>> grib_level = '2 m above ground'
->>> dataset = load_dtrm_fcsts(valid_dates, fhrs, file_template, data_type, geogrid, grib_var=grib_var, grib_level=grib_level)
+>>> dataset = load_dtrm_fcsts(valid_dates, fhrs, file_template,
+                              data_type, geogrid, grib_var=grib_var,
+                              grib_level=grib_level)
 >>> print(dataset.fcst.shape, dataset.fcst[:, 0])
 (3, 259920) [ 246.64699936  246.50599976  245.97450104]
 ```
@@ -159,12 +163,15 @@ Here's an example of how to load a few days of ensemble forecast data:
 >>> valid_dates = ['20160101', '20160102', '20160103']
 >>> fhrs = range(0, 120, 6)
 >>> members = range(0, 21)
->>> file_template = '/cpc/model_realtime/raw/gefs/06h/{yyyy}/{mm}/{dd}/{cc}/gefs_{yyyy}{mm}{dd}_{cc}z_f{fhr}_m{member}.grb2'
+>>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/{cc}/' \
+                    'gefs_{yyyy}{mm}{dd}_{cc}z_f{fhr}_m{member}.grb2'
 >>> data_type = 'grib2'
 >>> geogrid = Geogrid('1deg-global')
 >>> grib_var = 'TMP'
 >>> grib_level = '2 m above ground'
->>> dataset = load_ens_fcsts(valid_dates, fhrs, members, file_template, data_type, geogrid, grib_var=grib_var, grib_level=grib_level)
+>>> dataset = load_ens_fcsts(valid_dates, fhrs, members, file_template,
+                             data_type, geogrid, grib_var=grib_var,
+                             grib_level=grib_level)
 >>> print(dataset.ens.shape)
 (3, 21, 65160)
 >>> print(dataset.ens[:, :, 0])
@@ -187,4 +194,29 @@ Here's an example of how to load a few days of ensemble forecast data:
 (3, 65160)
 >>> print(dataset.ens_mean[:, 0])
 [ 246.67957157  246.33497583  246.28476225]
+```
+
+#### Loading climatology data
+
+To load climatology data, use the `loading.load_obs()` function. You'll need to specify the following parameters:
+
+1. `valid_days` - list of valid dates in MMDD format
+2. `file_template` - file template used to construct file names for each date - it can contain any of the following bracketed variables:
+   - `{mm}`
+   - `{dd}`
+4. `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+
+Here's an example of how to load a few days of climatology data:
+
+```python
+>>> from cpc.geogrids import Geogrid
+>>> from cpc.geofiles.loading import load_climos
+>>> valid_days = ['0101', '0102', '0103']
+>>> file_template = '/path/to/files/tmean_clim_poe_05d_{mm}{dd}.bin'
+>>> geogrid = Geogrid('1deg-global')
+>>> num_ptiles = 19
+>>> dataset = load_climos(valid_days, file_template, geogrid,
+                          num_ptiles=num_ptiles, debug=True)
+>>> print(dataset.climo.shape)
+>>> print(dataset.climo[:, :, 0])
 ```
