@@ -91,6 +91,15 @@ To load observation data, use the `loading.load_obs()` function. You'll need to 
 3. `data_type` - data type (binary, grib1 or grib2)
 4. `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
 
+Some optional parameters are:
+
+- `yrev` - whether fcst data is reversed in the y-direction, and should be flipped when loaded (default: False)
+- `grib_var` - grib variable name (for grib files only)
+- `grib_level` - grib level name (for grib files only)
+- `debug` - if True the file data is loaded from will be printed out (default: False)
+
+Note that observation binary files are assumed to have the format `record-num` x `grid-point` for multi-record files, or just a sequence of grid points for single-record files.
+
 Here's an example of how to load a few days of observation data:
 
 ```python
@@ -120,6 +129,15 @@ To load deterministic forecast data, use the `loading.load_dtrm_fcsts()` functio
    - `{fhr}`
 4. `data_type` - data type (binary, grib1 or grib2)
 5. `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+
+Some optional parameters are:
+
+- `fhr_stat` - statistic to calculate over the forecast hour dimension (mean [default] or sum)
+- `yrev` - whether fcst data is reversed in the y-direction, and should be flipped when loaded (default: False)
+- `grib_var` - grib variable name (for grib files only)
+- `grib_level` - grib level name (for grib files only)
+- `remove_dup_grib_fhrs` - whether to remove potential duplicate fhrs from the grib files (default: False) - sets the `grep_fhr` parameter to the current fhr when calling `read_grib()`, which greps for the fhr in the given grib file - this is useful for gribs that may for some reason have duplicate records for a given variable but with different fhrs. This way you can get the record for the correct fhr.
+- `debug` - if True the file data is loaded from will be printed out (default: False)
 
 Here's an example of how to load a few days of deterministic forecast data:
 
@@ -156,6 +174,15 @@ To load ensemble forecast data, use the `loading.load_ens_fcsts()` function. You
    - `{fhr}`
 5. `data_type` - data type (binary, grib1 or grib2)
 6. `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+
+Some optional parameters are:
+
+- `fhr_stat` - statistic to calculate over the forecast hour dimension (mean [default] or sum)
+- `yrev` - whether fcst data is reversed in the y-direction, and should be flipped when loaded (default: False)
+- `grib_var` - grib variable name (for grib files only)
+- `grib_level` - grib level name (for grib files only)
+- `remove_dup_grib_fhrs` - whether to remove potential duplicate fhrs from the grib files (default: False) - sets the `grep_fhr` parameter to the current fhr when calling `read_grib()`, which greps for the fhr in the given grib file - this is useful for gribs that may for some reason have duplicate records for a given variable but with different fhrs. This way you can get the record for the correct fhr.
+- `debug` - if True the file data is loaded from will be printed out (default: False)
 
 Here's an example of how to load a few days of ensemble forecast data:
 
@@ -207,6 +234,12 @@ To load climatology data, use the `loading.load_obs()` function. You'll need to 
    - `{mm}`
    - `{dd}`
 4. `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+
+Some optional parameters are:
+
+- `geogrid` - Geogrid associated with the data
+- `num_ptiles` - number of percentiles expected in the data file - if None then the file is assumed to be a mean or standard deviation instead of percentiles (default: None)
+- `debug` - if True the file data is loaded from will be printed out (default: False)
 
 Here's an example of how to load a few days of climatology data:
 
