@@ -85,16 +85,18 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
 
         >>> from cpc.geogrids import Geogrid
         >>> from cpc.geofiles.loading import load_ens_fcsts
-        >>> issued_dates = ['20160101', '20160102', '20160103']
+        >>> valid_dates = ['20160101', '20160102', '20160103']
         >>> fhrs = range(0, 120, 6)
         >>> members = range(0, 21)
-        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/{cc}/gefs_{yyyy}{mm}{dd}_{cc}z_f{fhr}_m{member}.grb2'
+        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/{cc}/' \
+                            'gefs_{yyyy}{mm}{dd}_{cc}z_f{fhr}_m{member}.grb2'
         >>> data_type = 'grib2'
         >>> geogrid = Geogrid('1deg-global')
         >>> grib_var = 'TMP'
         >>> grib_level = '2 m above ground'
-        >>> dataset = load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogrid,
-                                     grib_var=grib_var, grib_level=grib_level)
+        >>> dataset = load_ens_fcsts(valid_dates, fhrs, members, file_template,
+                                     data_type, geogrid, grib_var=grib_var,
+                                     grib_level=grib_level)
         >>> print(dataset.ens.shape)
         (3, 21, 65160)
         >>> print(dataset.ens[:, :, 0])
@@ -235,15 +237,17 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
 
         >>> from cpc.geogrids import Geogrid
         >>> from cpc.geofiles.loading import load_dtrm_fcsts
-        >>> issued_dates = ['20160101', '20160102', '20160103']
+        >>> valid_dates = ['20160101', '20160102', '20160103']
         >>> fhrs = range(0, 120, 6)
-        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/{cc}/gfs_{yyyy}{mm}{dd}_{cc}z_f{fhr}.grb2'
+        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/{cc}/' \
+                            'gfs_{yyyy}{mm}{dd}_{cc}z_f{fhr}.grb2'
         >>> data_type = 'grib2'
         >>> geogrid = Geogrid('0.5-deg-global-center-aligned')
         >>> grib_var = 'TMP'
         >>> grib_level = '2 m above ground'
-        >>> dataset = load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid,
-                                      grib_var=grib_var, grib_level=grib_level)
+        >>> dataset = load_dtrm_fcsts(valid_dates, fhrs, file_template,
+                                      data_type, geogrid, grib_var=grib_var,
+                                      grib_level=grib_level)
         >>> print(dataset.fcst.shape, dataset.fcst[:, 0])
         (3, 259920) [ 246.64699936  246.50599976  245.97450104]
     """
@@ -360,10 +364,11 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
         >>> from cpc.geogrids import Geogrid
         >>> from cpc.geofiles.loading import load_obs
         >>> valid_dates = ['20150101', '20150102', '20150103']
-        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/tmean_01d_{yyyy}{mm}{dd}.bin'
+        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/'\
+                            'tmean_01d_{yyyy}{mm}{dd}.bin'
         >>> data_type = 'binary'
         >>> geogrid = Geogrid('1deg-global')
-        >>> dataset = load_obs(valid_dates, file_template, data_type, geogrid)  # doctest: +SKIP
+        >>> dataset = load_obs(valid_dates, file_template, data_type, geogrid)
         >>> print(dataset.obs.shape, dataset.obs[:, 0])
         (3, 65160) [-28.48999405 -28.04499435 -27.81749725]
     """
@@ -468,35 +473,23 @@ def load_climos(valid_days, file_template, geogrid, num_ptiles=None, debug=False
     Returns
     -------
 
-    - Climatology object
-
-        >>> dataset = load_ens_fcsts(..., collapse=True)  # doctest: +SKIP
-
-    If `collapse=False`, a single NumPy array will be returned. For example:
-
-        >>> dataset = load_ens_fcsts(..., collapse=False))  # doctest: +SKIP
+    - Climatology object containing the observation data and some QC data
 
     Examples
     --------
 
-    Load ensemble mean and spread from forecasts initialized on a given
-    month/day from 1981-2010
+    Load a few days of climatology data
 
-        >>> from string_utils.dates import generate_date_list
-        >>> from data_utils.gridded.grid import Grid
-        >>> from data_utils.gridded.loading import load_obs
-        >>> dates = generate_date_list('19810525', '20100525', interval='years')
-        >>> file_tmplt = '/path/to/fcsts/%Y/%m/%d/gefs_%Y%m%d_00z_f{fhr}_m{member}.grb'
-        >>> data_type = 'grib2'
-        >>> grid = Grid('1deg-global')
-        >>> variable = 'TMP'
-        >>> level = '2 m above ground'
-        >>> num_members = 11
-        >>> dataset = \  # doctest: +SKIP
-        load_ens_fcsts(dates, file_template=file_tmplt, data_type=data_type,  # doctest: +SKIP
-        ...            grid=grid, variable=variable, level=level,  # doctest: +SKIP
-        ...            fhr_range=(150, 264), num_members=num_members,  # doctest: +SKIP
-        ...            collapse=True)  # doctest: +SKIP
+        >>> from cpc.geogrids import Geogrid
+        >>> from cpc.geofiles.loading import load_climos
+        >>> valid_days = ['0101', '0102', '0103']
+        >>> file_template = '/path/to/files/tmean_clim_poe_05d_{mm}{dd}.bin'
+        >>> geogrid = Geogrid('1deg-global')
+        >>> num_ptiles = 19
+        >>> dataset = load_climos(valid_days, file_template, geogrid,
+                                  num_ptiles=num_ptiles, debug=True)
+        >>> print(dataset.climo.shape)
+        >>> print(dataset.climo[:, :, 0])
     """
     # ----------------------------------------------------------------------------------------------
     # Create a new Climatology Dataset
