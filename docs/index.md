@@ -69,7 +69,9 @@ If you want to "load a dataset" (read in data from multiple files), you can use 
 
 Like for the `reading` module, the `loading` module depends on `wgrib` and `wgrib2` for reading in grib1/grib2 data.
 
-Data is loaded into a `Dataset` object, from which you can extract the data itself, plus a few QC-related attributes such as dates with missing files, a list of the missing files, and the dates that were loaded. There are several types of `Datasets`. Here is the hierarchy of `Dataset` types:
+### Dataset objects
+
+Data is loaded into a `Dataset` object, from which you can extract the data itself, plus a few QC-related attributes such as dates with missing files, a list of the missing files, and the dates that were loaded. There are several types of `Datasets`. Here is the hierarchy of `Dataset` types, and what information they contain:
 
 - Dataset
   - Observation
@@ -77,6 +79,45 @@ Data is loaded into a `Dataset` object, from which you can extract the data itse
     - DeterministicForecast
     - EnsembleForecast
   - Climatology
+
+#### General Datasets
+
+All `Datasets` contain the following attributes:
+
+- `data_type` - Type of `Dataset` (None for general Datasets)
+- `dates_with_missing_files` - Dates which had at least one file that was missing or couldn't be opened
+- `missing_files` - Files that were missing or couldn't be opened
+- `dates_loaded` - Dates for which data was loaded (includes dates which have all missing data)
+
+#### Observations
+
+`Observations` contain all attributes that `Datasets` have, plus:
+
+- `data_type` set to `observation`
+- `obs` - NumPy array of observations loaded, formatted as `(date, grid point)`, NaN where data couldn't be loaded
+
+#### Forecasts
+
+`Forecasts` contain all attributes that `Datasets` have, plus:
+
+- `data_type` set to `forecast`
+
+`EnsembleForecasts` contain all attributes that `Forecasts` have, plus:
+
+- `ens` - NumPy array of ensemble forecasts, formatted as `(date, member, grid point)`, NaN where data couldn't be loaded - note that data is averaged/accumulated over forecast hour
+- `ens_mean` - NumPy array of ensemble mean forecasts, formatted as `(date, grid point)`, NaN where data couldn't be loaded - note that data is averaged/accumulated over forecast hour
+- `ens_spread` - NumPy array of ensemble forecast spread, formatted as `(date, grid point)`, NaN where data couldn't be loaded - note that data is averaged/accumulated over forecast hour
+
+`DeterministicForecasts` contain all attributes that `Forecasts` have, plus:
+
+- `fcst` - NumPy array of deterministic forecasts, formatted as `(date, grid point)`, NaN where data couldn't be loaded - note that data is averaged/accumulated over forecast hour
+
+#### Climatologies
+
+`Climatologies` contain all attributes that `Datasets` have, plus:
+
+- `data_type` set to `climatology`
+- `climo` - NumPy array of climatologies, formatted as `(day, ptile, grid point)` when `num_ptiles is not None` and `(day, grid point)` when `num_ptiles is None`, NaN where data couldn't be loaded
 
 ### Loading observation data
 
