@@ -176,10 +176,10 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             # don't trust this mean/std
             if fhr_stat == 'mean':
                 dataset.ens[d, m] = np.mean(data_f, axis=0)
-            elif fhr_stat == 'std':
-                dataset.ens[d, m] = np.std(data_f, axis=0)
+            elif fhr_stat == 'sum':
+                dataset.ens[d, m] = np.sum(data_f, axis=0)
             else:
-                raise LoadingError('fhr_stat must be either mean or std', file)
+                raise LoadingError('fhr_stat must be either mean or sum', file)
 
     return dataset
 
