@@ -73,3 +73,7 @@ dist: clean
 install: clean
 	conda install --yes --file conda-requirements.txt
 	python setup.py install
+
+develop: clean
+	conda install --yes --file conda-requirements.txt
+	python setup.py develop
