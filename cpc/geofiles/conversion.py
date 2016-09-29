@@ -9,7 +9,7 @@ from bisect import bisect
 from cpc.geogrids import Geogrid
 from cpc.geogrids.manipulation import interpolate
 
-from stats_utils.stats import full_fields_to_ptiles
+from cpc.stats import full_fields_to_ptiles
 
 
 def fcst_bin_to_txt(bin_file, grid, fcst_ptiles,
