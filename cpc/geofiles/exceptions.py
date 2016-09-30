@@ -1,4 +1,4 @@
-class GeofilesException(Exception):
+class GeofilesError(Exception):
     def __init__(self, *args, **kwargs):
         """
         Custom Exception for the cpc.geofiles package
