@@ -67,25 +67,6 @@ def fcst_bin_to_txt(bin_file, grid, fcst_ptiles,
 
     - ValueError
         - If arguments are incorrect
-
-    Examples
-    --------
-
-        #!/usr/bin/env python
-        >>> from data_utils.gridded.conversion import fcst_bin_to_txt
-        >>> from data_utils.gridded.grid import Grid
-        >>> from pkg_resources import resource_filename
-        >>> grid = Grid('2deg-conus')
-        >>> fcst_ptiles = [ 1,  2,  5, 10, 15,
-        ...                20, 25, 33, 40, 50,
-        ...                60, 67, 75, 80, 85,
-        ...                90, 95, 98, 99]
-        >>> desired_output_thresholds = [33, 67]
-        >>> bin_file = resource_filename('data_utils',
-        ... 'lib/example-tmean-fcst.bin')
-        >>> fcst_bin_to_txt(bin_file, grid, fcst_ptiles,
-        ... desired_output_thresholds, 'out.txt',
-        ... terciles=True)  # doctest: +SKIP
     """
 
     # If terciles=True, make sure there are only 2 percentiles
@@ -215,7 +196,8 @@ def obs_bin_to_txt(bin_file, grid, desired_output_thresholds, txt_file,
     - output_threshold_type (string, optional)
         - Type of thresholds to write out ('ptile' or 'raw')
     - climo_file (string, optional)
-        - Binary file containing the observation, with the dimensions (Y x X)
+        - Binary file containing the climatology (needed to convert raw observations to a
+          category), with the dimensions (Y x X)
     - climo_ptiles (array_like, optional)
         - List of percentiles found in the climatology file
     - output_grid (Grid, optional)
@@ -227,27 +209,6 @@ def obs_bin_to_txt(bin_file, grid, desired_output_thresholds, txt_file,
 
     - ValueError
         - If arguments are incorrect
-
-    Examples
-    --------
-
-
-        #!/usr/bin/env python
-        >>> from data_utils.gridded.conversion import obs_bin_to_txt
-        >>> from data_utils.gridded.grid import Grid
-        >>> from pkg_resources import resource_filename
-        >>> grid = Grid('2deg-conus')
-        >>> climo_ptiles = [ 1,  2,  5, 10, 15,
-        ...                 20, 25, 33, 40, 50,
-        ...                 60, 67, 75, 80, 85,
-        ...                 90, 95, 98, 99]
-        >>> desired_output_thresholds = [33, 67]
-        >>> bin_file = resource_filename('data_utils',
-        ... 'lib/example-tmean-obs.bin')
-        >>> climo_file = resource_filename('data_utils',
-        ... 'lib/example-tmean-clim.bin')
-        >>> obs_bin_to_txt(bin_file, grid, desired_output_thresholds, 'out.txt',
-        ... climo_file=climo_file, climo_ptiles=climo_ptiles)  # doctest: +SKIP
     """
 
     # Currently only supports 3 categories

@@ -296,3 +296,31 @@ Here's an example of how to load a few days of climatology data:
 >>> print(dataset.climo.shape)
 >>> print(dataset.climo[:, :, 0])
 ```
+
+How do I convert data?
+======================
+
+Binary files can be converted to text files using functions in `cpc.geofiles.conversion`.
+
+To convert a binary forecast file to text, use the function `cpc.geofiles.conversion.fcst_bin_to_txt()`. You'll need to specify the following parameters:
+
+- `bin_file` - binary forecast file (assumed to contain probabilities of exceeding a given set of percentiles)
+- `grid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+- `fcst_ptiles` - list of percentiles found in the forecast binary file
+- `desired_output_thresholds` - list of percentile thresholds to extract and write to the text file
+- `txt_file` - name of the text file to write data to
+- `terciles` - if True, will output tercile probabilities (with headers below, normal, and above) - if False (default) will probabilities of exceeding percentiles (with headers ptileXX, ptileYY, etc.)
+- `output_grid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should be interpolated to before writing the text file
+
+To convert a binary observation file to text, use the function `cpc.geofiles.conversion.obs_bin_to_txt()`. You'll need to specify the following parameters:
+
+- `bin_file` - binary forecast file (assumed to contain probabilities of exceeding a given set of percentiles)
+- `grid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
+- `desired_output_thresholds` - list of percentile thresholds to extract and write to the text file
+- `txt_file` - name of the text file to write data to
+- `output_threshold_type` - type of thresholds to write out ('ptile' or 'raw')
+- `climo_file` - binary file containing the climatology (needed to convert raw observations to a category), with the dimensions (Y x X)
+- `climo_ptiles` - list of percentiles found in the climatology file
+- `output_grid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should be interpolated to before writing the text file
+
+See the [API documentation](api/conversion.html) for more information.

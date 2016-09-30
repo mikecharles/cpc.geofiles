@@ -44,23 +44,6 @@ def read_grib(file, grib_type, grib_var, grib_level, geogrid, yrev=False, grep_f
 
     - ReadingError: if wgrib has a problem reading the grib and/or writing the temp file
     - ReadingError: if no grib record is found
-
-    ### Examples
-
-        #!/usr/bin/env python
-        >>> from data_utils.gridded.reading import read_grib
-        >>> from pkg_resources import resource_filename
-        >>> file = resource_filename('data_utils',
-        ... 'lib/example-tmean-fcst.grb2')
-        >>> grib_type = 'grib2'
-        >>> variable = 'TMP'
-        >>> level = '2 m above ground'
-        >>> data = read_grib(file, grib_type, variable, level)
-        >>> data.shape
-        (65160,)
-        >>> data
-        array([ 248.77000427,  248.77000427,  248.77000427, ...,  241.86000061,
-                241.86000061,  241.86000061], dtype=float32)
     """
     # Make sure grib file exists first
     if not os.path.isfile(file):

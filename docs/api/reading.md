@@ -26,7 +26,7 @@ type: apidoc
 > - grib_type (string): type of grib file ('grib1', 'grib2')
 > - variable (string): name of the variable in the grib record (ex. TMP, UGRD, etc.)
 > - level (string): name of the level (ex. '2 m above ground', '850 mb', etc.)
-> - geogrid (GeoGrid): GeoGrid the data should be placed on
+> - geogrid (Geogrid): Geogrid the data should be placed on
 > - yrev (optional): option to flip the data in the y-direction (eg. ECMWF grib files)
 > - grep_fhr (optional): fhr to grep grib file for - this is useful for gribs that may for some
 >   reason have duplicate records for a given variable but with different fhrs. This way you
@@ -40,22 +40,5 @@ type: apidoc
 > 
 > - ReadingError: if wgrib has a problem reading the grib and/or writing the temp file
 > - ReadingError: if no grib record is found
-> 
-> ### Examples
-> 
->     #!/usr/bin/env python
->     >>> from data_utils.gridded.reading import read_grib
->     >>> from pkg_resources import resource_filename
->     >>> file = resource_filename('data_utils',
->     ... 'lib/example-tmean-fcst.grb2')
->     >>> grib_type = 'grib2'
->     >>> variable = 'TMP'
->     >>> level = '2 m above ground'
->     >>> data = read_grib(file, grib_type, variable, level)
->     >>> data.shape
->     (65160,)
->     >>> data
->     array([ 248.77000427,  248.77000427,  248.77000427, ...,  241.86000061,
->             241.86000061,  241.86000061], dtype=float32)
 
 

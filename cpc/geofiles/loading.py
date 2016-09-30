@@ -95,11 +95,11 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
         >>> grib_var = 'TMP'
         >>> grib_level = '2 m above ground'
         >>> dataset = load_ens_fcsts(valid_dates, fhrs, members, file_template,
-                                     data_type, geogrid, grib_var=grib_var,
-                                     grib_level=grib_level)
+        ...                          data_type, geogrid, grib_var=grib_var,
+        ...                          grib_level=grib_level)
         >>> print(dataset.ens.shape)
         (3, 21, 65160)
-        >>> print(dataset.ens[:, :, 0])
+        >>> print(dataset.ens[:, :, 0])  # doctest: +SKIP
         [[ 246.18849945  246.40299683  247.11050034  245.95850067  246.17949905
            246.91550064  247.41700134  246.53700104  247.96300125  246.05699921
            246.08150101  247.11800003  247.46500015  247.30050049  247.44899979
@@ -117,7 +117,7 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
            245.73949966]]
         >>> print(dataset.ens_mean.shape)
         (3, 65160)
-        >>> print(dataset.ens_mean[:, 0])
+        >>> print(dataset.ens_mean[:, 0])  # doctest: +SKIP
         [ 246.67957157  246.33497583  246.28476225]
     """
     # ----------------------------------------------------------------------------------------------
@@ -246,9 +246,9 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
         >>> grib_var = 'TMP'
         >>> grib_level = '2 m above ground'
         >>> dataset = load_dtrm_fcsts(valid_dates, fhrs, file_template,
-                                      data_type, geogrid, grib_var=grib_var,
-                                      grib_level=grib_level)
-        >>> print(dataset.fcst.shape, dataset.fcst[:, 0])
+        ...                           data_type, geogrid, grib_var=grib_var,
+        ...                           grib_level=grib_level)
+        >>> print(dataset.fcst.shape, dataset.fcst[:, 0])  # doctest: +SKIP
         (3, 259920) [ 246.64699936  246.50599976  245.97450104]
     """
     # ----------------------------------------------------------------------------------------------
@@ -364,12 +364,11 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
         >>> from cpc.geogrids import Geogrid
         >>> from cpc.geofiles.loading import load_obs
         >>> valid_dates = ['20150101', '20150102', '20150103']
-        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/'\
-                            'tmean_01d_{yyyy}{mm}{dd}.bin'
+        >>> file_template = '/path/to/files/{yyyy}/{mm}/{dd}/tmean_01d_{yyyy}{mm}{dd}.bin'
         >>> data_type = 'binary'
         >>> geogrid = Geogrid('1deg-global')
         >>> dataset = load_obs(valid_dates, file_template, data_type, geogrid)
-        >>> print(dataset.obs.shape, dataset.obs[:, 0])
+        >>> print(dataset.obs.shape, dataset.obs[:, 0])  # doctest: +SKIP
         (3, 65160) [-28.48999405 -28.04499435 -27.81749725]
     """
     # ----------------------------------------------------------------------------------------------
@@ -485,9 +484,16 @@ def load_climos(valid_days, file_template, geogrid, num_ptiles=None, debug=False
         >>> geogrid = Geogrid('1deg-global')
         >>> num_ptiles = 19
         >>> dataset = load_climos(valid_days, file_template, geogrid,
-                                  num_ptiles=num_ptiles, debug=True)
+        ...                       num_ptiles=num_ptiles, debug=True)
         >>> print(dataset.climo.shape)
+        (3, 19, 65160)
         >>> print(dataset.climo[:, :, 0])
+        [[ nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan
+           nan  nan  nan  nan  nan]
+         [ nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan
+           nan  nan  nan  nan  nan]
+         [ nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan  nan
+           nan  nan  nan  nan  nan]]
     """
     # ----------------------------------------------------------------------------------------------
     # Create a new Climatology Dataset
