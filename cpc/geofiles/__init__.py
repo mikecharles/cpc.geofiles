@@ -1,4 +1,5 @@
 import shutil
+from .exceptions import GeofilesError, LoadingError, ReadingError
 
 
 def test_wgrib():
