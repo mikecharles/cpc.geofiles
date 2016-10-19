@@ -15,7 +15,7 @@ from cpc.stats import full_fields_to_ptiles
 def fcst_bin_to_txt(bin_file, grid, fcst_ptiles,
                     desired_output_thresholds, txt_file,
                     output_threshold_type='ptile', terciles=False,
-                    output_grid=None):
+                    output_grid=None, out_missing_val='-999'):
     """
     Converts a forecast binary file to a text file
 
@@ -61,6 +61,8 @@ def fcst_bin_to_txt(bin_file, grid, fcst_ptiles,
     - output_grid (Grid, optional))
         - `data_utils.gridded.grid` to interpolate to before converting to a
         txt file
+    - out_missing_val (string, optional)
+        - value to write out to text file indicating missing data (defaults to '-999')
 
     Raises
     ------
@@ -106,6 +108,7 @@ def fcst_bin_to_txt(bin_file, grid, fcst_ptiles,
         # Establish the format for the grid point column and the data column(s)
         gridpoint_col_fmt = '{:0' + str(num_digits) + 'd}{:0' + str(num_digits) + 'd}'
         data_col_fmt = '{:>12.5f}'
+        data_col_fmt_missing = '{:>12s}'
 
         # ----------------------------------------------------------------------
         # Create a header string
@@ -145,12 +148,18 @@ def fcst_bin_to_txt(bin_file, grid, fcst_ptiles,
                     probs.append(data[ptile_indexes[1], y, x])
                     data_string = ''
                     for prob in probs:
-                        data_string += (data_col_fmt + '  ').format(prob)
+                        if numpy.isnan(prob):
+                            data_string += (data_col_fmt_missing + '  ').format(out_missing_val)
+                        else:
+                            data_string += (data_col_fmt + '  ').format(prob)
                 else:
                     data_string = ''
                     for ptile_index in ptile_indexes:
-                        data_string += (data_col_fmt + '  ').format(
-                            data[ptile_index, y, x])
+                        if numpy.isnan(data[ptile_index, y, x]):
+                            data_string += (data_col_fmt_missing + '  ').format(out_missing_val)
+                        else:
+                            data_string += (data_col_fmt + '  ').format(
+                                data[ptile_index, y, x])
                 # Write the grid point and data to the file
                 file.write((gridpoint_col_fmt + '  {}\n').format(
                     x+1, y+1, data_string))
