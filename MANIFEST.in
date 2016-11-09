@@ -3,6 +3,7 @@ include CONTRIBUTING.md
 include HISTORY.md
 include LICENSE
 include README.md
+include CHANGELOG.md
 include cpc.geofiles/config.yml
 
 recursive-include tests *
