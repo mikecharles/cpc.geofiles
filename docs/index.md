@@ -213,6 +213,7 @@ To load ensemble forecast data, use the `loading.load_ens_fcsts()` function. You
    - `{dd}`
    - `{cc}`
    - `{fhr}`
+   - `{member}`
 - `data_type` - data type (binary, grib1 or grib2)
 - `geogrid` - [Geogrid](https://mikecharles.github.io/cpc.geogrids/) that the data should fit on
 
