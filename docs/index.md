@@ -71,7 +71,7 @@ Like for the `reading` module, the `loading` module depends on `wgrib` and `wgri
 
 ### Dataset objects
 
-Data is loaded into a `Dataset` object, from which you can extract the data itself, plus a few QC-related attributes such as dates with missing files, a list of the missing files, and the dates that were loaded. There are several types of `Datasets`. Here is the hierarchy of `Dataset` types, and what information they contain:
+Data is loaded into a `Dataset` object, from which you can extract the data itself, plus a few QC-related attributes such as dates with files not loaded, a list of the files not loaded, and the dates that were loaded. There are several types of `Datasets`. Here is the hierarchy of `Dataset` types, and what information they contain:
 
 - Dataset
   - Observation
@@ -85,8 +85,8 @@ Data is loaded into a `Dataset` object, from which you can extract the data itse
 All `Datasets` contain the following attributes:
 
 - `data_type` - Type of `Dataset` (None for general Datasets)
-- `dates_with_missing_files` - Dates which had at least one file that was missing or couldn't be opened
-- `missing_files` - Files that were missing or couldn't be opened
+- `dates_with_files_not_loaded` - Dates which had at least one file that was missing or couldn't be opened
+- `files_not_loaded` - Files that were missing or couldn't be opened
 - `dates_loaded` - Dates for which data was loaded (includes dates which have all missing data)
 
 #### Observations

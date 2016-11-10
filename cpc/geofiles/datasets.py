@@ -12,8 +12,8 @@ class Dataset:
     """
     def __init__(self, data_type=None):
         self.data_type = data_type
-        self.dates_with_missing_files = set()
-        self.missing_files = set()
+        self.dates_with_files_not_loaded = set()
+        self.files_not_loaded = set()
         self.dates_loaded = set()
 
 
