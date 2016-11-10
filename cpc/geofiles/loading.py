@@ -168,10 +168,10 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
                     except ReadingError:
                         # Set this day to missing
                         data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
-                        # Add this date to the list of dates with missing files
-                        dataset.dates_with_missing_files.add(date)
-                        # Add this file to the list of missing files
-                        dataset.missing_files.add(file)
+                        # Add this date to the list of dates with files not loaded
+                        dataset.dates_with_files_not_loaded.add(date)
+                        # Add this file to the list of files not loaded
+                        dataset.files_not_loaded.add(file)
             # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
             # don't trust this mean/std
             if fhr_stat == 'mean':
@@ -303,10 +303,10 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
                 except ReadingError:
                     # Set this day to missing
                     data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
-                    # Add this date to the list of dates with missing files
-                    dataset.dates_with_missing_files.add(date)
-                    # Add this file to the list of missing files
-                    dataset.missing_files.add(file)
+                    # Add this date to the list of dates with files not loaded
+                    dataset.dates_with_files_not_loaded.add(date)
+                    # Add this file to the list of files not loaded
+                    dataset.files_not_loaded.add(file)
         # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
         # don't trust this mean/std
         if fhr_stat == 'mean':
@@ -408,10 +408,10 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
             except ReadingError:
                 # Set this day to missing
                 dataset.obs[d] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
-                # Add this date to the list of dates with missing files
-                dataset.dates_with_missing_files.add(date)
-                # Add this file to the list of missing files
-                dataset.missing_files.add(file)
+                # Add this date to the list of dates with files not loaded
+                dataset.dates_with_files_not_loaded.add(date)
+                # Add this file to the list of files not loaded
+                dataset.files_not_loaded.add(file)
         elif data_type in ['bin', 'binary']:
             try:
                 # Load data from file
@@ -433,10 +433,10 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
             except:
                 # Set this day to missing
                 dataset.obs[d] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
-                # Add this date to the list of dates with missing files
-                dataset.dates_with_missing_files.add(date)
-                # Add this file to the list of missing files
-                dataset.missing_files.add(file)
+                # Add this date to the list of dates with files not loaded
+                dataset.dates_with_files_not_loaded.add(date)
+                # Add this file to the list of files not loaded
+                dataset.files_not_loaded.add(file)
 
     return dataset
 
@@ -542,10 +542,10 @@ def load_climos(valid_days, file_template, geogrid, num_ptiles=None, debug=False
                 dataset.climo[d] = np.full((num_ptiles, geogrid.num_y * geogrid.num_x), np.nan)
             else:
                 dataset.climo[d] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
-            # Add this date to the list of dates with missing files
-            dataset.dates_with_missing_files.add(date)
-            # Add this file to the list of missing files
-            dataset.missing_files.add(file)
+            # Add this date to the list of dates with files not loaded
+            dataset.dates_with_files_not_loaded.add(date)
+            # Add this file to the list of files not loaded
+            dataset.files_not_loaded.add(file)
 
     return dataset
 
