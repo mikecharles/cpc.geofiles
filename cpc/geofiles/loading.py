@@ -7,10 +7,11 @@ to make that much simpler.
 """
 
 # Built-ins
-
+import os
 
 # Third-party
 import numpy as np
+import jinja2
 
 # This package
 from .datasets import EnsembleForecast, DeterministicForecast, Observation, Climatology
@@ -159,7 +160,7 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             for f, fhr in enumerate(fhrs):
                 # Replace variables in file template
                 kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'fhr': fhr, 'member': member}
-                file = file_template.format(**kwargs)
+                file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
                 # Read in data from file
                 if data_type in ['grib1', 'grib2']:
                     try:
@@ -294,7 +295,7 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
         for f, fhr in enumerate(fhrs):
             # Replace variables in file template
             kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'fhr': fhr}
-            file = file_template.format(**kwargs)
+            file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
             # Read in data from file
             if data_type in ['grib1', 'grib2']:
                 try:
@@ -398,7 +399,7 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
             hh = '00'
         # Replace variables in file template
         kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'hh': hh}
-        file = file_template.format(**kwargs)
+        file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
         # Read in data from file
         if data_type in ['grib1', 'grib2']:
             try:
@@ -526,7 +527,7 @@ def load_climos(valid_days, file_template, geogrid, num_ptiles=None, debug=False
         mm, dd = date[0:2], date[2:4]
         # Replace variables in file template
         kwargs = {'mm': mm, 'dd': dd}
-        file = file_template.format(**kwargs)
+        file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
         # Read in data from file
         try:
             # Load data from file
