@@ -72,7 +72,7 @@ class EnsembleForecast(Forecast):
 
         - array: ensemble spread
         """
-        return np.nan if self._ens_spread is None else self._ens_spread
+        return np.nanstd(self.ens, axis=1) if self._ens_spread is None else self._ens_spread
 
     ens_spread = property(get_ens_spread)
 
