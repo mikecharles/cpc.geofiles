@@ -12,6 +12,7 @@ import os
 # Third-party
 import numpy as np
 import jinja2
+from cpc.units.units import UnitConverter
 
 # This package
 from .datasets import EnsembleForecast, DeterministicForecast, Observation, Climatology
@@ -33,7 +34,7 @@ def all_int_to_str(input):
 
 def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogrid,
                    fhr_stat='mean', yrev=False, grib_var=None, grib_level=None,
-                   remove_dup_grib_fhrs=False, debug=False):
+                   remove_dup_grib_fhrs=False, unit_conversion=None, log=False, debug=False):
     """
     Loads ensemble forecast data
 
@@ -72,6 +73,10 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
       `read_grib()`, which greps for the fhr in the given grib file - this is useful for gribs
       that may for some reason have duplicate records for a given variable but with different
       fhrs. This way you can get the record for the correct fhr.
+    - unit_conversion - *string* (optional) - type of unit conversion to perform. If None,
+      then no unit conversion will be performed.
+    - log - *boolean* (optional) - take the log of the forecast variable before calculating an
+      ensemble mean and/or returning the data (default: False)
     - debug (boolean): if True the file data is loaded from will be printed out (default: False)
 
     Returns
@@ -145,6 +150,12 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
     dataset.dates_loaded |= set(issued_dates)
 
     # ----------------------------------------------------------------------------------------------
+    # Create a UnitConverter object to convert the data units (if necessary) later on
+    #
+    if unit_conversion:
+        uc = UnitConverter()
+
+    # ----------------------------------------------------------------------------------------------
     # Loop over date, members, and fhrs
     #
     for d, date in enumerate(issued_dates):
@@ -173,6 +184,16 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
                         dataset.dates_with_files_not_loaded.add(date)
                         # Add this file to the list of files not loaded
                         dataset.files_not_loaded.add(file)
+            # --------------------------------------------------------------------------------------
+            # Convert units (if necessary)
+            #
+            if unit_conversion:
+                data_f = uc.convert(data_f, unit_conversion)
+            # --------------------------------------------------------------------------------------
+            # Log transform (if necessary)
+            #
+            if log:
+                data_f = np.log(data_f)
             # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
             # don't trust this mean/std
             if fhr_stat == 'mean':
@@ -187,7 +208,7 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
 
 def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_stat='mean',
                     yrev=False, grib_var=None, grib_level=None, remove_dup_grib_fhrs=False,
-                    debug=False):
+                    unit_conversion=None, log=False, debug=False):
     """
     Loads deterministic forecast data
 
@@ -224,6 +245,10 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
       `read_grib()`, which greps for the fhr in the given grib file - this is useful for gribs
       that may for some reason have duplicate records for a given variable but with different
       fhrs. This way you can get the record for the correct fhr.
+    - unit_conversion - *string* (optional) - type of unit conversion to perform. If None,
+      then no unit conversion will be performed.
+    - log - *boolean* (optional) - take the log of the forecast variable before calculating an
+      ensemble mean and/or returning the data (default: False)
     - debug (boolean): if True the file data is loaded from will be printed out (default: False)
 
     Returns
@@ -281,6 +306,12 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
     dataset.dates_loaded |= set(issued_dates)
 
     # ----------------------------------------------------------------------------------------------
+    # Create a UnitConverter object to convert the data units (if necessary) later on
+    #
+    if unit_conversion:
+        uc = UnitConverter()
+
+    # ----------------------------------------------------------------------------------------------
     # Loop over date and fhrs
     #
     for d, date in enumerate(issued_dates):
@@ -308,6 +339,17 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
                     dataset.dates_with_files_not_loaded.add(date)
                     # Add this file to the list of files not loaded
                     dataset.files_not_loaded.add(file)
+        # --------------------------------------------------------------------------------------
+        # Convert units (if necessary)
+        #
+        if unit_conversion:
+            data_f = uc.convert(data_f, unit_conversion)
+        # --------------------------------------------------------------------------------------
+        # Log transform (if necessary)
+        #
+        if log:
+            data_f = np.log(data_f)
+
         # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
         # don't trust this mean/std
         if fhr_stat == 'mean':
@@ -321,7 +363,7 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
 
 
 def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yrev=False,
-             grib_var=None, grib_level=None, debug=False):
+             grib_var=None, grib_level=None, unit_conversion=None, log=False, debug=False):
     """
     Loads observation data
 
@@ -350,6 +392,10 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
       when loaded (default: False)
     - grib_var (string): grib variable name (for grib files only)
     - grib_level (string): grib level name (for grib files only)
+    - unit_conversion - *string* (optional) - type of unit conversion to perform. If None,
+      then no unit conversion will be performed.
+    - log - *boolean* (optional) - take the log of the forecast variable before calculating an
+      ensemble mean and/or returning the data (default: False)
     - debug (boolean): if True the file data is loaded from will be printed out (default: False)
 
     Returns
@@ -386,6 +432,12 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
     # Set dates loaded
     #
     dataset.dates_loaded |= set(valid_dates)
+
+    # ----------------------------------------------------------------------------------------------
+    # Create a UnitConverter object to convert the data units (if necessary) later on
+    #
+    if unit_conversion:
+        uc = UnitConverter()
 
     # ----------------------------------------------------------------------------------------------
     # Loop over date
@@ -438,6 +490,17 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
                 dataset.dates_with_files_not_loaded.add(date)
                 # Add this file to the list of files not loaded
                 dataset.files_not_loaded.add(file)
+
+    # --------------------------------------------------------------------------------------
+    # Convert units (if necessary)
+    #
+    if unit_conversion:
+        dataset.obs = uc.convert(dataset.obs, unit_conversion)
+    # --------------------------------------------------------------------------------------
+    # Log transform (if necessary)
+    #
+    if log:
+        dataset.obs = np.log(dataset.obs)
 
     return dataset
 
