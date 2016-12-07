@@ -193,7 +193,8 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             # Log transform (if necessary)
             #
             if log:
-                data_f = np.log(data_f)
+                with np.errstate(divide='ignore'):
+                    data_f = np.log(data_f)
             # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
             # don't trust this mean/std
             if fhr_stat == 'mean':
@@ -348,7 +349,8 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
         # Log transform (if necessary)
         #
         if log:
-            data_f = np.log(data_f)
+            with np.errstate(divide='ignore'):
+                data_f = np.log(data_f)
 
         # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
         # don't trust this mean/std
@@ -500,7 +502,8 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
     # Log transform (if necessary)
     #
     if log:
-        dataset.obs = np.log(dataset.obs)
+        with np.errstate(divide='ignore'):
+            dataset.obs = np.log(dataset.obs)
 
     return dataset
 
