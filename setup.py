@@ -16,7 +16,7 @@ with open('README.md') as readme_file:
 with open('CHANGELOG.md') as history_file:
     history = history_file.read()
 
-requirements = ['cpc.geogrids', 'numpy']
+requirements = ['cpc.geogrids', 'numpy', 'cpc.units']
 
 setup(
     name="cpc.geofiles",
