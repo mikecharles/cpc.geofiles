@@ -176,7 +176,7 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
                 if data_type in ['grib1', 'grib2']:
                     try:
                         data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
-                                              debug=debug)
+                                              yrev=yrev, debug=debug)
                     except ReadingError:
                         # Set this day to missing
                         data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
@@ -331,7 +331,7 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
             # Read in data from file
             if data_type in ['grib1', 'grib2']:
                 try:
-                    data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
+                    data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid, yrev=yrev,
                                           debug=debug)
                 except ReadingError:
                     # Set this day to missing
@@ -459,7 +459,7 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
             try:
                 # Read grib with read_grib()
                 dataset.obs[d] = read_grib(file, data_type, grib_var, grib_level, geogrid,
-                                           debug=debug)
+                                           yrev=yrev, debug=debug)
             except ReadingError:
                 # Set this day to missing
                 dataset.obs[d] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
