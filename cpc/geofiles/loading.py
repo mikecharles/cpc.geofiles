@@ -194,7 +194,8 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             #
             if log:
                 with np.errstate(divide='ignore'):
-                    data_f = np.log(data_f)
+                    # Assuming a minimum log value of -2, set vals of < 1mm to 0.14 (exp(-2))
+                    data_f = np.log(np.where(data_f < 1, 0.14, data_f))
             # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
             # don't trust this mean/std
             if fhr_stat == 'mean':
