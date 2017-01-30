@@ -351,7 +351,7 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
         #
         if log:
             with np.errstate(divide='ignore'):
-                data_f = np.log(data_f)
+                data_f = np.log(np.where(data_f < 1, np.exp(-2), data_f))
 
         # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
         # don't trust this mean/std
@@ -504,7 +504,7 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
     #
     if log:
         with np.errstate(divide='ignore'):
-            dataset.obs = np.log(dataset.obs)
+            dataset.obs = np.log(np.where(dataset.obs < 1, np.exp(-2), dataset.obs))
 
     return dataset
 
