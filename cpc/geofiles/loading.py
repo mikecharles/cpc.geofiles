@@ -189,13 +189,6 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             #
             if unit_conversion:
                 data_f = uc.convert(data_f, unit_conversion)
-            # --------------------------------------------------------------------------------------
-            # Log transform (if necessary)
-            #
-            if log:
-                with np.errstate(divide='ignore'):
-                    # Assuming a minimum log value of -2, set vals of < 1mm to 0.14 (exp(-2))
-                    data_f = np.log(np.where(data_f < 1, 0.14, data_f))
             # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
             # don't trust this mean/std
             if fhr_stat == 'mean':
@@ -204,6 +197,13 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
                 dataset.ens[d, m] = np.sum(data_f, axis=0)
             else:
                 raise LoadingError('fhr_stat must be either mean or sum', file)
+    # --------------------------------------------------------------------------------------
+    # Log transform (if necessary)
+    #
+    # Assuming a minimum log value of -2, set vals of < 1mm to 0.14 (exp(-2))
+    if log:
+        with np.errstate(divide='ignore', invalid='ignore'):
+            dataset.ens = np.log(np.where(dataset.ens < 1, np.exp(-2), dataset.ens))
 
     return dataset
 
