@@ -107,8 +107,8 @@ def fcst_bin_to_txt(bin_file, grid, fcst_ptiles,
 
         # Establish the format for the grid point column and the data column(s)
         gridpoint_col_fmt = '{:0' + str(num_digits) + 'd}{:0' + str(num_digits) + 'd}'
-        data_col_fmt = '{:>12.5f}'
-        data_col_fmt_missing = '{:>12s}'
+        data_col_fmt = '{:>7.5f}'
+        data_col_fmt_missing = '{:>7s}'
 
         # ----------------------------------------------------------------------
         # Create a header string
@@ -124,7 +124,7 @@ def fcst_bin_to_txt(bin_file, grid, fcst_ptiles,
         if terciles:
             header_string = ('{:<' + str(len(gridpoint_col_fmt.format(0, 0))) +
                              's}  ').format('id')
-            for temp_str in ['prob_below', 'prob_normal', 'prob_above']:
+            for temp_str in ['below', 'normal', 'above']:
                 header_string += ('{:>' + str(len(data_col_fmt.format(0))) +
                                   's}  ').format(temp_str)
         else:
