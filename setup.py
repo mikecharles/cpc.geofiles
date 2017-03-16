@@ -20,7 +20,7 @@ requirements = ['cpc.geogrids', 'numpy', 'cpc.units']
 
 setup(
     name="cpc.geofiles",
-    version='v0.3.2',
+    version='v0.3.3',
     description="CPC geospatial file interaction (reading, writing, etc.)",
     long_description=readme + '\n\n' + history,
     author="Mike Charles",
