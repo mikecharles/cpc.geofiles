@@ -612,7 +612,6 @@ def load_climos(valid_days, file_template, geogrid, num_ptiles=None, debug=False
         # Replace variables in file template
         kwargs = {'mm': mm, 'dd': dd}
         file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
-        print('CLIMO FILE: {}'.format(file))
         # Read in data from file
         try:
             # Load data from file
