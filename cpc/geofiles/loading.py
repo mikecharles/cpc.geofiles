@@ -170,7 +170,11 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             data_f = np.nan * np.empty((len(fhrs), geogrid.num_y * geogrid.num_x))
             for f, fhr in enumerate(fhrs):
                 # Replace variables in file template
-                kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'fhr': fhr, 'member': member}
+                kwargs = {
+                    'yyyy': yyyy, 'mm': mm, 'dd': dd,
+                    'cc': cc, 'cycle': f'{cc}z', 'cycle_num': cc,
+                    'fhr': fhr, 'member': member
+                }
                 file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
                 # Read in data from file
                 if data_type in ['grib1', 'grib2']:
