@@ -170,7 +170,11 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             data_f = np.nan * np.empty((len(fhrs), geogrid.num_y * geogrid.num_x))
             for f, fhr in enumerate(fhrs):
                 # Replace variables in file template
-                kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'fhr': fhr, 'member': member}
+                kwargs = {
+                    'yyyy': yyyy, 'mm': mm, 'dd': dd,
+                    'cc': cc, 'cycle': f'{cc}z', 'cycle_num': cc,
+                    'fhr': fhr, 'member': member
+                }
                 file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
                 # Read in data from file
                 if data_type in ['grib1', 'grib2']:
@@ -178,6 +182,23 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
                         data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
                                               yrev=yrev, debug=debug)
                     except ReadingError:
+                        # Set this day to missing
+                        data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
+                        # Add this date to the list of dates with files not loaded
+                        dataset.dates_with_files_not_loaded.add(date)
+                        # Add this file to the list of files not loaded
+                        dataset.files_not_loaded.add(file)
+                elif data_type in ['bin', 'binary']:
+                    try:
+                        if debug:
+                            print(f'Attempting to load data from {file}...')
+                        data_f[f] = np.fromfile(file, dtype='float32')
+                        # Flip in the y-direction if necessary
+                        if yrev:
+                            data_f[f] = np.flipud(data_f[f])
+                    except Exception as e:
+                        if debug:
+                            print(f'Couldn\'t load data from file {file}: {e}')
                         # Set this day to missing
                         data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
                         # Add this date to the list of dates with files not loaded
