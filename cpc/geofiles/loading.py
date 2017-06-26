@@ -193,9 +193,17 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
                         if debug:
                             print(f'Attempting to load data from {file}...')
                         data_f[f] = np.fromfile(file, dtype='float32')
+                        # --------------------------------------------------------------------------
                         # Flip in the y-direction if necessary
                         if yrev:
-                            data_f[f] = np.flipud(data_f[f])
+                            # Reshape into 2 dimensions
+                            data_temp = np.reshape(data_f[f], (geogrid.num_y, geogrid.num_x))
+                            # Flip
+                            data_temp = np.flipud(data_temp)
+                            # Reshape back into 1 dimension
+                            data_temp = np.reshape(data_temp, data_f[f].size)
+                            # Replace data_f[f]
+                            data_f[f] = data_temp
                     except Exception as e:
                         if debug:
                             print(f'Couldn\'t load data from file {file}: {e}')
