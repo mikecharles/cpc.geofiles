@@ -217,7 +217,17 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             # Convert units (if necessary)
             #
             if unit_conversion:
-                data_f = uc.convert(data_f, unit_conversion)
+                # If the unit_conversion is 'prate-to-mm' then we have to convert the data by
+                # multiplying by the number of seconds between each fhr (eg. 86400 for 24-hour
+                # files)
+                if unit_conversion == 'prate-to-mm':
+                    if len(fhrs) < 2:
+                        raise ValueError(f'Cannot apply a unit conversion of {unit_conversion} with'
+                                         f' only a single fhr')
+                    else:
+                        data_f *= (int(fhrs[1]) - int(fhrs[0])) * 3600
+                else:
+                    data_f = uc.convert(data_f, unit_conversion)
             # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
             # don't trust this mean/std
             if fhr_stat == 'mean':
