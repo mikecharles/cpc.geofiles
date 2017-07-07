@@ -34,7 +34,8 @@ def all_int_to_str(input):
 
 def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogrid,
                    fhr_stat='mean', yrev=False, grib_var=None, grib_level=None,
-                   remove_dup_grib_fhrs=False, unit_conversion=None, log=False, debug=False):
+                   remove_dup_grib_fhrs=False, unit_conversion=None, log=False, debug=False,
+                   accum_over_fhr=False):
     """
     Loads ensemble forecast data
 
@@ -78,6 +79,9 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
     - log - *boolean* (optional) - take the log of the forecast variable before calculating an
       ensemble mean and/or returning the data (default: False)
     - debug (boolean): if True the file data is loaded from will be printed out (default: False)
+    - accum_over_fhr: if True the given field is assumed to accumulate continuously throughout
+      the forecast (eg. ECENS precip is the total accumulation from the start of the forecast up
+      to that given fhr) - in this case the field total from fhr1 to fhr2 is field_fhr2 - field_fhr1
 
     Returns
     -------
@@ -233,7 +237,10 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             if fhr_stat == 'mean':
                 dataset.ens[d, m] = np.mean(data_f, axis=0)
             elif fhr_stat == 'sum':
-                dataset.ens[d, m] = np.sum(data_f, axis=0)
+                if accum_over_fhr:
+                    dataset.ens[d, m] = data_f[-1] - data_f[0]
+                else:
+                    dataset.ens[d, m] = np.sum(data_f, axis=0)
             else:
                 raise LoadingError('fhr_stat must be either mean or sum', file)
     # --------------------------------------------------------------------------------------
