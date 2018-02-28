@@ -519,17 +519,17 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
                 # Load data from file
                 if debug:
                     print('Binary file being read: {}'.format(file))
-                dataset.obs[d] = np.fromfile(file, dtype='float32')
+                tempdata = np.fromfile(file, dtype='float32')
                 # Determine number of records in the binary file
-                num_records = int(dataset.obs[d].size / (geogrid.num_y * geogrid.num_x))
+                num_records = int(tempdata.size / (geogrid.num_y * geogrid.num_x))
                 # Reshape data and extract the appropriate record - if record_num is specified,
                 # extract that record number, otherwise just take the entire array
                 if record_num is not None:
-                    dataset.obs[d] = dataset.obs[d].reshape(
+                    dataset.obs[d] = tempdata.reshape(
                         num_records, geogrid.num_y * geogrid.num_x
                     )[record_num]
                 else:
-                    dataset.obs[d] = dataset.obs[d].reshape(
+                    dataset.obs[d] = tempdata.reshape(
                         num_records, geogrid.num_y * geogrid.num_x
                     )
             except:
