@@ -138,9 +138,14 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
     # ----------------------------------------------------------------------------------------------
     # Initialize arrays for the EnsembleForecast Dataset the full ensemble data array
     #
-    dataset.ens = np.nan * np.empty(
-        (len(issued_dates), len(members), geogrid.num_y * geogrid.num_x)
-    )
+    if fhr_stat is None:
+        dataset.ens = np.nan * np.empty(
+            (len(fhrs), len(issued_dates), len(members), geogrid.num_y * geogrid.num_x)
+        )
+    else:
+        dataset.ens = np.nan * np.empty(
+            (len(issued_dates), len(members), geogrid.num_y * geogrid.num_x)
+        )
 
     # ----------------------------------------------------------------------------------------------
     # Convert fhrs and members to strings (if necessary)
@@ -241,8 +246,10 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
                     dataset.ens[d, m] = data_f[-1] - data_f[0]
                 else:
                     dataset.ens[d, m] = np.sum(data_f, axis=0)
+            elif fhr_stat is None:
+                dataset.ens[:, d, m] = data_f
             else:
-                raise LoadingError('fhr_stat must be either mean or sum', file)
+                raise LoadingError('fhr_stat must be mean, sum, or None', file)
     # --------------------------------------------------------------------------------------
     # Log transform (if necessary)
     #
