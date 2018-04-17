@@ -34,8 +34,8 @@ def all_int_to_str(input):
 
 def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogrid,
                    fhr_stat='mean', yrev=False, grib_var=None, grib_level=None,
-                   remove_dup_grib_fhrs=False, unit_conversion=None, log=False, debug=False,
-                   accum_over_fhr=False):
+                   remove_dup_grib_fhrs=False, unit_conversion=None, log=False, transform=None,
+                   debug=False, accum_over_fhr=False):
     """
     Loads ensemble forecast data
 
@@ -76,8 +76,10 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
       fhrs. This way you can get the record for the correct fhr.
     - unit_conversion - *string* (optional) - type of unit conversion to perform. If None,
       then no unit conversion will be performed.
-    - log - *boolean* (optional) - take the log of the forecast variable before calculating an
-      ensemble mean and/or returning the data (default: False)
+    - log - *boolean* (optional, deprecated - use transform='log') - take the log of the forecast
+      variable before calculating an ensemble mean and/or returning the data (default: False)
+    - transform - *string* (optional) - type of data transform to do (supported values: 'log',
+      'sqare-root', None [default])
     - debug (boolean): if True the file data is loaded from will be printed out (default: False)
     - accum_over_fhr: if True the given field is assumed to accumulate continuously throughout
       the forecast (eg. ECENS precip is the total accumulation from the start of the forecast up
@@ -251,19 +253,22 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             else:
                 raise LoadingError('fhr_stat must be mean, sum, or None', file)
     # --------------------------------------------------------------------------------------
-    # Log transform (if necessary)
+    # Do data transformation (if necessary)
     #
     # Assuming a minimum log value of -2, set vals of < 1mm to 0.14 (exp(-2))
-    if log:
+    if transform == 'log' or log:
         with np.errstate(divide='ignore', invalid='ignore'):
             dataset.ens = np.log(np.where(dataset.ens < 1, np.exp(-2), dataset.ens))
+    elif transform == 'square-root':
+        with np.errstate(divide='ignore'):
+            dataset.ens = np.sqrt(dataset.ens)
 
     return dataset
 
 
 def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_stat='mean',
                     yrev=False, grib_var=None, grib_level=None, remove_dup_grib_fhrs=False,
-                    unit_conversion=None, log=False, debug=False):
+                    unit_conversion=None, log=False, transform=None, debug=False):
     """
     Loads deterministic forecast data
 
@@ -302,8 +307,10 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
       fhrs. This way you can get the record for the correct fhr.
     - unit_conversion - *string* (optional) - type of unit conversion to perform. If None,
       then no unit conversion will be performed.
-    - log - *boolean* (optional) - take the log of the forecast variable before calculating an
-      ensemble mean and/or returning the data (default: False)
+    - log - *boolean* (optional, deprecated - use transform='log') - take the log of the forecast
+      variable before calculating an ensemble mean and/or returning the data (default: False)
+    - transform - *string* (optional) - type of data transform to do (supported values: 'log',
+      'sqare-root', None [default])
     - debug (boolean): if True the file data is loaded from will be printed out (default: False)
 
     Returns
@@ -400,11 +407,15 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
         if unit_conversion:
             data_f = uc.convert(data_f, unit_conversion)
         # --------------------------------------------------------------------------------------
-        # Log transform (if necessary)
+        # Do data transformation (if necessary)
         #
-        if log:
-            with np.errstate(divide='ignore'):
+        # Assuming a minimum log value of -2, set vals of < 1mm to 0.14 (exp(-2))
+        if transform == 'log' or log:
+            with np.errstate(divide='ignore', invalid='ignore'):
                 data_f = np.log(np.where(data_f < 1, np.exp(-2), data_f))
+        elif transform == 'square-root':
+            with np.errstate(divide='ignore'):
+                dataset.ens = np.sqrt(dataset.ens)
 
         # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
         # don't trust this mean/std
@@ -419,7 +430,8 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
 
 
 def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yrev=False,
-             grib_var=None, grib_level=None, unit_conversion=None, log=False, debug=False):
+             grib_var=None, grib_level=None, unit_conversion=None, log=False,
+             transform=None, debug=False):
     """
     Loads observation data
 
@@ -450,8 +462,10 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
     - grib_level (string): grib level name (for grib files only)
     - unit_conversion - *string* (optional) - type of unit conversion to perform. If None,
       then no unit conversion will be performed.
-    - log - *boolean* (optional) - take the log of the forecast variable before calculating an
-      ensemble mean and/or returning the data (default: False)
+    - log - *boolean* (optional, deprecated - use transform='log') - take the log of the forecast
+      variable before calculating an ensemble mean and/or returning the data (default: False)
+    - transform - *string* (optional) - type of data transform to do (supported values: 'log',
+      'sqare-root', None [default])
     - debug (boolean): if True the file data is loaded from will be printed out (default: False)
 
     Returns
@@ -553,11 +567,14 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
     if unit_conversion:
         dataset.obs = uc.convert(dataset.obs, unit_conversion)
     # --------------------------------------------------------------------------------------
-    # Log transform (if necessary)
+    # Do data transformation (if necessary)
     #
-    if log:
+    if transform == 'log' or log:
         with np.errstate(divide='ignore'):
             dataset.obs = np.log(np.where(dataset.obs < 1, np.exp(-2), dataset.obs))
+    elif transform == 'square-root':
+        with np.errstate(divide='ignore'):
+            dataset.obs = np.sqrt(dataset.obs)
 
     return dataset
 
@@ -627,8 +644,9 @@ def load_climos(valid_days, file_template, geogrid, num_ptiles=None, debug=False
     # If num_ptiles is an integer, add a ptile dimension to the climo array
     if num_ptiles is not None:
         try:
-            dataset.climo = np.nan * np.empty((len(valid_days), num_ptiles,
-                                               geogrid.num_y * geogrid.num_x))
+            dataset.climo = np.full(
+                (len(valid_days), num_ptiles, geogrid.num_y * geogrid.num_x), np.nan
+            )
         except:
             raise LoadingError('num_ptiles must be an integer or None')
     else:
