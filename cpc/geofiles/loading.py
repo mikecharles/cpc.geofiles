@@ -243,6 +243,10 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             # don't trust this mean/std
             if fhr_stat == 'mean':
                 dataset.ens[d, m] = np.mean(data_f, axis=0)
+            elif fhr_stat == 'min':
+                dataset.ens[d, m] = np.min(data_f, axis=0)
+            elif fhr_stat == 'max':
+                dataset.ens[d, m] = np.max(data_f, axis=0)
             elif fhr_stat == 'sum':
                 if accum_over_fhr:
                     dataset.ens[d, m] = data_f[-1] - data_f[0]
