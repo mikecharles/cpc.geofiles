@@ -12,3 +12,11 @@ def test_wgrib():
         print('wgrib2 not installed')
     if success:
         print('Everything installed')
+
+
+# Make submodules available when just importing the top-level package
+from . import conversion
+from . import datasets
+from . import loading
+from . import reading
+from . import writing
