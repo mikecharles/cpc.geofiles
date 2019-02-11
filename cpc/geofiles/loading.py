@@ -13,6 +13,7 @@ import os
 import numpy as np
 import jinja2
 from cpc.units.units import UnitConverter
+import xarray as xr
 
 # This package
 from .datasets import EnsembleForecast, DeterministicForecast, Observation, Climatology
@@ -35,7 +36,7 @@ def all_int_to_str(input):
 def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogrid,
                    fhr_stat='mean', yrev=False, grib_var=None, grib_level=None,
                    remove_dup_grib_fhrs=False, unit_conversion=None, log=False, transform=None,
-                   debug=False, accum_over_fhr=False):
+                   debug=False, accum_over_fhr=False, nc_var=None, one_spatial_dimension=False):
     """
     Loads ensemble forecast data
 
@@ -84,6 +85,7 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
     - accum_over_fhr: if True the given field is assumed to accumulate continuously throughout
       the forecast (eg. ECENS precip is the total accumulation from the start of the forecast up
       to that given fhr) - in this case the field total from fhr1 to fhr2 is field_fhr2 - field_fhr1
+    - nc_var (string): NetCDF variable name (optional)
 
     Returns
     -------
@@ -138,24 +140,6 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
     dataset = EnsembleForecast()
 
     # ----------------------------------------------------------------------------------------------
-    # Initialize arrays for the EnsembleForecast Dataset the full ensemble data array
-    #
-    if fhr_stat is None:
-        dataset.ens = np.nan * np.empty(
-            (len(fhrs), len(issued_dates), len(members), geogrid.num_y * geogrid.num_x)
-        )
-    else:
-        dataset.ens = np.nan * np.empty(
-            (len(issued_dates), len(members), geogrid.num_y * geogrid.num_x)
-        )
-
-    # ----------------------------------------------------------------------------------------------
-    # Convert fhrs and members to strings (if necessary)
-    #
-    fhrs = all_int_to_str(fhrs)
-    members = all_int_to_str(members)
-
-    # ----------------------------------------------------------------------------------------------
     # Set dates loaded
     #
     dataset.dates_loaded |= set(issued_dates)
@@ -167,105 +151,184 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
         uc = UnitConverter()
 
     # ----------------------------------------------------------------------------------------------
+    # Initialize arrays for the EnsembleForecast Dataset the full ensemble data array
+    #
+    if data_type in ('grib1', 'grib2'):
+        if fhr_stat is None:
+            dataset.ens = np.nan * np.empty(
+                (len(fhrs), len(issued_dates), len(members), geogrid.num_y * geogrid.num_x)
+            )
+        else:
+            dataset.ens = np.nan * np.empty(
+                (len(issued_dates), len(members), geogrid.num_y * geogrid.num_x)
+            )
+    else:
+        if fhr_stat is None:
+            dataset.ens = np.nan * np.empty(
+                (len(fhrs), len(issued_dates), len(members), geogrid.num_y, geogrid.num_x)
+            )
+        else:
+            dataset.ens = np.nan * np.empty(
+                (len(issued_dates), len(members), geogrid.num_y, geogrid.num_x)
+            )
+
+    # ----------------------------------------------------------------------------------------------
+    # Grib-specific setup
+    #
+    if data_type in ('grib1', 'grib2'):
+        # ----------------------------------------------------------------------------------------------
+        # Convert fhrs and members to strings (if necessary)
+        #
+        fhrs = all_int_to_str(fhrs)
+        members = all_int_to_str(members)
+
+    # ----------------------------------------------------------------------------------------------
     # Loop over date, members, and fhrs
     #
     for d, date in enumerate(issued_dates):
-        # Split date into components
-        yyyy, mm, dd = date[0:4], date[4:6], date[6:8]
-        if len(date) == 10:
-            cc = date[8:10]
-        else:
-            cc = '00'
-        for m, member in enumerate(members):
-            # Initialize an array for a single day, single member, all fhrs
-            data_f = np.nan * np.empty((len(fhrs), geogrid.num_y * geogrid.num_x))
-            for f, fhr in enumerate(fhrs):
-                # Replace variables in file template
-                kwargs = {
-                    'yyyy': yyyy, 'mm': mm, 'dd': dd,
-                    'cc': cc, 'cycle': f'{cc}z', 'cycle_num': cc,
-                    'fhr': fhr, 'member': member
-                }
-                file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
-                # Read in data from file
-                if data_type in ['grib1', 'grib2']:
-                    try:
-                        data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
-                                              yrev=yrev, debug=debug)
-                    except ReadingError:
-                        # Set this day to missing
-                        data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
-                        # Add this date to the list of dates with files not loaded
-                        dataset.dates_with_files_not_loaded.add(date)
-                        # Add this file to the list of files not loaded
-                        dataset.files_not_loaded.add(file)
-                elif data_type in ['bin', 'binary']:
-                    try:
-                        if debug:
-                            print(f'Attempting to load data from {file}...')
-                        data_f[f] = np.fromfile(file, dtype='float32')
-                        # --------------------------------------------------------------------------
-                        # Flip in the y-direction if necessary
-                        if yrev:
-                            # Reshape into 2 dimensions
-                            data_temp = np.reshape(data_f[f], (geogrid.num_y, geogrid.num_x))
-                            # Flip
-                            data_temp = np.flipud(data_temp)
-                            # Reshape back into 1 dimension
-                            data_temp = np.reshape(data_temp, data_f[f].size)
-                            # Replace data_f[f]
-                            data_f[f] = data_temp
-                    except Exception as e:
-                        if debug:
-                            print(f'Couldn\'t load data from file {file}: {e}')
-                        # Set this day to missing
-                        data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
-                        # Add this date to the list of dates with files not loaded
-                        dataset.dates_with_files_not_loaded.add(date)
-                        # Add this file to the list of files not loaded
-                        dataset.files_not_loaded.add(file)
-            # --------------------------------------------------------------------------------------
-            # Convert units (if necessary)
-            #
-            if unit_conversion:
-                # If the unit_conversion is 'prate-to-mm' then we have to convert the data by
-                # multiplying by the number of seconds between each fhr (eg. 86400 for 24-hour
-                # files)
-                if unit_conversion == 'prate-to-mm':
-                    if len(fhrs) < 2:
-                        raise ValueError(f'Cannot apply a unit conversion of {unit_conversion} with'
-                                         f' only a single fhr')
-                    else:
-                        data_f *= (int(fhrs[1]) - int(fhrs[0])) * 3600
-                else:
-                    data_f = uc.convert(data_f, unit_conversion)
-            # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we
-            # don't trust this mean/std
-            if fhr_stat == 'mean':
-                dataset.ens[d, m] = np.mean(data_f, axis=0)
-            elif fhr_stat == 'min':
-                dataset.ens[d, m] = np.min(data_f, axis=0)
-            elif fhr_stat == 'max':
-                dataset.ens[d, m] = np.max(data_f, axis=0)
-            elif fhr_stat == 'sum':
-                if accum_over_fhr:
-                    dataset.ens[d, m] = data_f[-1] - data_f[0]
-                else:
-                    dataset.ens[d, m] = np.sum(data_f, axis=0)
-            elif fhr_stat is None:
-                dataset.ens[:, d, m] = data_f
+        # ------------------------------------------------------------------------------------------
+        # Grib-specific looping and data loading
+        #
+        if data_type in ('grib1', 'grib2'):
+            # Split date into components
+            yyyy, mm, dd = date[0:4], date[4:6], date[6:8]
+            if len(date) == 10:
+                cc = date[8:10]
             else:
-                raise LoadingError('fhr_stat must be mean, sum, or None', file)
+                cc = '00'
+            for m, member in enumerate(members):
+                # Initialize an array for a single day, single member, all fhrs
+                data_f = np.nan * np.empty((len(fhrs), geogrid.num_y * geogrid.num_x))
+                for f, fhr in enumerate(fhrs):
+                    # Replace variables in file template
+                    kwargs = {
+                        'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'cycle': f'{cc}z', 'cycle_num': cc,
+                        'fhr': fhr, 'member': member
+                    }
+                    file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
+                    # Read in data from file
+                    if data_type in ('grib1', 'grib2'):
+                        try:
+                            data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid,
+                                                  yrev=yrev, debug=debug)
+                        except ReadingError:
+                            # Set this day to missing
+                            data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
+                            # Add this date to the list of dates with files not loaded
+                            dataset.dates_with_files_not_loaded.add(date)
+                            # Add this file to the list of files not loaded
+                            dataset.files_not_loaded.add(file)
+                    elif data_type in ['bin', 'binary']:
+                        try:
+                            if debug:
+                                print(f'Attempting to load data from {file}...')
+                            data_f[f] = np.fromfile(file, dtype='float32')
+                            # --------------------------------------------------------------------------
+                            # Flip in the y-direction if necessary
+                            if yrev:
+                                # Reshape into 2 dimensions
+                                data_temp = np.reshape(data_f[f], (geogrid.num_y, geogrid.num_x))
+                                # Flip
+                                data_temp = np.flipud(data_temp)
+                                # Reshape back into 1 dimension
+                                data_temp = np.reshape(data_temp, data_f[f].size)
+                                # Replace data_f[f]
+                                data_f[f] = data_temp
+                        except Exception as e:
+                            if debug:
+                                print(f'Couldn\'t load data from file {file}: {e}')
+                            # Set this day to missing
+                            data_f[f] = np.full((geogrid.num_y * geogrid.num_x), np.nan)
+                            # Add this date to the list of dates with files not loaded
+                            dataset.dates_with_files_not_loaded.add(date)
+                            # Add this file to the list of files not loaded
+                            dataset.files_not_loaded.add(file)
+                # ------------------------------------------------------------------------------------------------------
+                # Take stat over fhr (don't use nanmean/nanstd, if an fhr is missing then we don't trust this mean/std
+                #
+                # Note: we only do this for gribs. With xarray we average/summed over fhr above for NetCDF files
+                #
+                if data_type in ('grib1', 'grib2'):
+                    if fhr_stat == 'mean':
+                        dataset.ens[d, m] = np.mean(data_f, axis=0)
+                    elif fhr_stat == 'min':
+                        dataset.ens[d, m] = np.min(data_f, axis=0)
+                    elif fhr_stat == 'max':
+                        dataset.ens[d, m] = np.max(data_f, axis=0)
+                    elif fhr_stat == 'sum':
+                        if accum_over_fhr:
+                            dataset.ens[d, m] = data_f[-1] - data_f[0]
+                        else:
+                            dataset.ens[d, m] = np.sum(data_f, axis=0)
+                    elif fhr_stat is None:
+                        dataset.ens[:, d, m] = data_f
+                    else:
+                        raise LoadingError('fhr_stat must be mean, sum, or None', file)
+        elif data_type == 'netcdf':
+            for issued_date in issued_dates:
+                yyyy, mm, dd = issued_date[0:4], issued_date[4:6], issued_date[6:8]
+                cc = issued_date[8:10] if len(issued_date) == 10 else '00'
+                kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'cycle': f'{cc}z', 'cycle_num': cc}
+                file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
+                try:
+                    xr_dataset = xr.open_dataset(file, decode_times=False)
+                except FileNotFoundError as e:
+                    print(f"Couldn't load data from file {file}: {e}")
+                    # Add this date to the list of dates with files not loaded
+                    dataset.dates_with_files_not_loaded.add(date)
+                    # Add this file to the list of files not loaded
+                    dataset.files_not_loaded.add(file)
+                    return dataset
+
+                xr_dataset = xr_dataset[nc_var].sel(time=np.in1d(xr_dataset[nc_var].time, [int(f) for f in fhrs]))
+                if fhr_stat == 'mean':
+                    xr_dataset = xr_dataset.mean(dim='time')
+                elif fhr_stat == 'sum':
+                    xr_dataset = xr_dataset.sum(dim='time')
+                elif fhr_stat == 'min':
+                    xr_dataset = xr_dataset.min(dim='time')
+                elif fhr_stat == 'max':
+                    xr_dataset = xr_dataset.max(dim='time')
+
+                if fhr_stat is None:
+                    dataset.ens[:, d, :] = xr_dataset.values
+                else:
+                    dataset.ens[d] = xr_dataset.values
+
+        # --------------------------------------------------------------------------------------
+        # Convert units (if necessary)
+        #
+        if unit_conversion:
+            # If the unit_conversion is 'prate-to-mm' then we have to convert the data by
+            # multiplying by the number of seconds between each fhr (eg. 86400 for 24-hour
+            # files)
+            if unit_conversion == 'prate-to-mm':
+                if len(fhrs) < 2:
+                    raise ValueError(f'Cannot apply a unit conversion of {unit_conversion} with'
+                                     f' only a single fhr')
+                else:
+                    dataset.ens *= (int(fhrs[1]) - int(fhrs[0])) * 3600
+            else:
+                dataset.ens = uc.convert(dataset.ens, unit_conversion)
+
+        # --------------------------------------------------------------------------------------
+        # Do data transformation (if necessary)
+        #
+        # Assuming a minimum log value of -2, set vals of < 1mm to 0.14 (exp(-2))
+        if transform == 'log' or log:
+            with np.errstate(divide='ignore', invalid='ignore'):
+                dataset.ens = np.log(np.where(dataset.ens < 1, np.exp(-2), dataset.ens))
+        elif transform == 'square-root':
+            with np.errstate(divide='ignore'):
+                dataset.ens = np.sqrt(dataset.ens)
+
     # --------------------------------------------------------------------------------------
-    # Do data transformation (if necessary)
+    # Reshape data back to 1 dimension of space
     #
-    # Assuming a minimum log value of -2, set vals of < 1mm to 0.14 (exp(-2))
-    if transform == 'log' or log:
-        with np.errstate(divide='ignore', invalid='ignore'):
-            dataset.ens = np.log(np.where(dataset.ens < 1, np.exp(-2), dataset.ens))
-    elif transform == 'square-root':
-        with np.errstate(divide='ignore'):
-            dataset.ens = np.sqrt(dataset.ens)
+    if one_spatial_dimension and dataset.ens.ndim == 4:
+        dataset.ens = dataset.ens.reshape(dataset.ens.shape[0], dataset.ens.shape[1], -1)
+    elif one_spatial_dimension and dataset.ens.ndim == 5:
+        dataset.ens = dataset.ens.reshape(dataset.ens.shape[0], dataset.ens.shape[1], dataset.ens.shape[2], -1)
 
     return dataset
 
