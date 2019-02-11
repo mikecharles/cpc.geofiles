@@ -346,10 +346,9 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
     # ----------------------------------------------------------------------------------------------
     # Make sure grib parameters are set if data_type is grib1 or grib2
     #
-    if data_type in ['grib1', 'grib2']:
+    if data_type in ('grib1', 'grib2'):
         if grib_var is None or grib_level is None:
-            raise LoadingError('When data_type is grib1 or grib2, grib_var and grib_level must be '
-                               'defined')
+            raise LoadingError('When data_type is grib1 or grib2, grib_var and grib_level must be defined')
 
     # ----------------------------------------------------------------------------------------------
     # Create a new DeterministicForecast Dataset
@@ -394,7 +393,7 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
             kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'fhr': fhr}
             file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
             # Read in data from file
-            if data_type in ['grib1', 'grib2']:
+            if data_type in ('grib1', 'grib2'):
                 try:
                     data_f[f] = read_grib(file, data_type, grib_var, grib_level, geogrid, yrev=yrev,
                                           debug=debug)
@@ -527,7 +526,7 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
         kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'hh': hh}
         file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
         # Read in data from file
-        if data_type in ['grib1', 'grib2']:
+        if data_type in ('grib1', 'grib2'):
             try:
                 # Read grib with read_grib()
                 dataset.obs[d] = read_grib(file, data_type, grib_var, grib_level, geogrid,
