@@ -284,7 +284,10 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
                 if fhr_stat == 'mean':
                     xr_dataset = xr_dataset.mean(dim='time')
                 elif fhr_stat == 'sum':
-                    xr_dataset = xr_dataset.sum(dim='time')
+                    if accum_over_fhr:
+                        xr_dataset = xr_dataset.sel(time=int(fhrs[-1])) - xr_dataset.sel(time=int(fhrs[0]))
+                    else:
+                        xr_dataset = xr_dataset.sum(dim='time')
                 elif fhr_stat == 'min':
                     xr_dataset = xr_dataset.min(dim='time')
                 elif fhr_stat == 'max':
