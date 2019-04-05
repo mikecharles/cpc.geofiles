@@ -328,10 +328,11 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
     # --------------------------------------------------------------------------------------
     # Reshape data back to 1 dimension of space
     #
-    if one_spatial_dimension and dataset.ens.ndim == 4:
-        dataset.ens = dataset.ens.reshape(dataset.ens.shape[0], dataset.ens.shape[1], -1)
-    elif one_spatial_dimension and dataset.ens.ndim == 5:
-        dataset.ens = dataset.ens.reshape(dataset.ens.shape[0], dataset.ens.shape[1], dataset.ens.shape[2], -1)
+    if fhr_stat is not None:
+        if one_spatial_dimension and dataset.ens.ndim == 4:
+            dataset.ens = dataset.ens.reshape(dataset.ens.shape[0], dataset.ens.shape[1], -1)
+        elif one_spatial_dimension and dataset.ens.ndim == 5:
+            dataset.ens = dataset.ens.reshape(dataset.ens.shape[0], dataset.ens.shape[1], dataset.ens.shape[2], -1)
 
     return dataset
 
