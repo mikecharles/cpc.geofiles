@@ -2,3 +2,4 @@ basemap
 numpy
 scipy
 jinja2
+xarray
