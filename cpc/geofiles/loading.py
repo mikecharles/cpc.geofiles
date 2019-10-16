@@ -265,38 +265,37 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
                     else:
                         raise LoadingError('fhr_stat must be mean, sum, or None', file)
         elif data_type == 'netcdf':
-            for issued_date in issued_dates:
-                yyyy, mm, dd = issued_date[0:4], issued_date[4:6], issued_date[6:8]
-                cc = issued_date[8:10] if len(issued_date) == 10 else '00'
-                kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'cycle': f'{cc}z', 'cycle_num': cc}
-                file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
-                try:
-                    xr_dataset = xr.open_dataset(file, decode_times=False)
-                except FileNotFoundError as e:
-                    print(f"Couldn't load data from file {file}: {e}")
-                    # Add this date to the list of dates with files not loaded
-                    dataset.dates_with_files_not_loaded.add(date)
-                    # Add this file to the list of files not loaded
-                    dataset.files_not_loaded.add(file)
-                    return dataset
+            yyyy, mm, dd = date[0:4], date[4:6], date[6:8]
+            cc = date[8:10] if len(date) == 10 else '00'
+            kwargs = {'yyyy': yyyy, 'mm': mm, 'dd': dd, 'cc': cc, 'cycle': f'{cc}z', 'cycle_num': cc}
+            file = jinja2.Template(os.path.expandvars(file_template)).render(**kwargs)
+            try:
+                xr_dataset = xr.open_dataset(file, decode_times=False)
+            except FileNotFoundError as e:
+                print(f"Couldn't load data from file {file}: {e}")
+                # Add this date to the list of dates with files not loaded
+                dataset.dates_with_files_not_loaded.add(date)
+                # Add this file to the list of files not loaded
+                dataset.files_not_loaded.add(file)
+                return dataset
 
-                xr_dataset = xr_dataset[nc_var].sel(time=np.in1d(xr_dataset[nc_var].time, [int(f) for f in fhrs]))
-                if fhr_stat == 'mean':
-                    xr_dataset = xr_dataset.mean(dim='time')
-                elif fhr_stat == 'sum':
-                    if accum_over_fhr:
-                        xr_dataset = xr_dataset.sel(time=int(fhrs[-1])) - xr_dataset.sel(time=int(fhrs[0]))
-                    else:
-                        xr_dataset = xr_dataset.sum(dim='time')
-                elif fhr_stat == 'min':
-                    xr_dataset = xr_dataset.min(dim='time')
-                elif fhr_stat == 'max':
-                    xr_dataset = xr_dataset.max(dim='time')
-
-                if fhr_stat is None:
-                    dataset.ens[:, d, :] = xr_dataset.values
+            xr_dataset = xr_dataset[nc_var].sel(time=np.in1d(xr_dataset[nc_var].time, [int(f) for f in fhrs]))
+            if fhr_stat == 'mean':
+                xr_dataset = xr_dataset.mean(dim='time')
+            elif fhr_stat == 'sum':
+                if accum_over_fhr:
+                    xr_dataset = xr_dataset.sel(time=int(fhrs[-1])) - xr_dataset.sel(time=int(fhrs[0]))
                 else:
-                    dataset.ens[d] = xr_dataset.values
+                    xr_dataset = xr_dataset.sum(dim='time')
+            elif fhr_stat == 'min':
+                xr_dataset = xr_dataset.min(dim='time')
+            elif fhr_stat == 'max':
+                xr_dataset = xr_dataset.max(dim='time')
+
+            if fhr_stat is None:
+                dataset.ens[:, d, :] = xr_dataset.values
+            else:
+                dataset.ens[d] = xr_dataset.values
 
         # --------------------------------------------------------------------------------------
         # Convert units (if necessary)
