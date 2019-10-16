@@ -14,6 +14,7 @@ import numpy as np
 import jinja2
 from cpc.units.units import UnitConverter
 import xarray as xr
+from cpc.geogrids.manipulation import interpolate
 
 # This package
 from .datasets import EnsembleForecast, DeterministicForecast, Observation, Climatology
@@ -36,7 +37,8 @@ def all_int_to_str(input):
 def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogrid,
                    fhr_stat='mean', yrev=False, grib_var=None, grib_level=None,
                    remove_dup_grib_fhrs=False, unit_conversion=None, log=False, transform=None,
-                   debug=False, accum_over_fhr=False, nc_var=None, one_spatial_dimension=False):
+                   debug=False, accum_over_fhr=False, nc_var=None, one_spatial_dimension=False,
+                   interp_grid=None):
     """
     Loads ensemble forecast data
 
@@ -86,6 +88,7 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
       the forecast (eg. ECENS precip is the total accumulation from the start of the forecast up
       to that given fhr) - in this case the field total from fhr1 to fhr2 is field_fhr2 - field_fhr1
     - nc_var (string): NetCDF variable name (optional)
+    - interp_grid (string): Name of the Geogrid you with to interpolate to before returning
 
     Returns
     -------
@@ -297,6 +300,10 @@ def load_ens_fcsts(issued_dates, fhrs, members, file_template, data_type, geogri
             else:
                 dataset.ens[d] = xr_dataset.values
 
+            # Interpolate grid (if necessary)
+            if interp_grid is not None:
+                dataset.ens - interpolate(dataset.ens, geogrid, interp_grid)
+
         # --------------------------------------------------------------------------------------
         # Convert units (if necessary)
         #
@@ -500,7 +507,7 @@ def load_dtrm_fcsts(issued_dates, fhrs, file_template, data_type, geogrid, fhr_s
 
 def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yrev=False,
              grib_var=None, grib_level=None, unit_conversion=None, log=False,
-             transform=None, debug=False):
+             transform=None, debug=False, wgrib2_new_grid=False):
     """
     Loads observation data
 
@@ -596,7 +603,7 @@ def load_obs(valid_dates, file_template, data_type, geogrid, record_num=None, yr
             try:
                 # Read grib with read_grib()
                 dataset.obs[d] = read_grib(file, data_type, grib_var, grib_level, geogrid,
-                                           yrev=yrev, debug=debug)
+                                           yrev=yrev, debug=debug, wgrib2_new_grid=wgrib2_new_grid)
             except ReadingError:
                 # Set this day to missing
                 dataset.obs[d] = np.full((geogrid.num_y * geogrid.num_x), np.nan)

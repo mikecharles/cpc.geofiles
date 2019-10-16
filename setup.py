@@ -20,7 +20,7 @@ requirements = ['cpc.geogrids', 'numpy', 'cpc.units', 'jinja2', 'xarray']
 
 setup(
     name="cpc.geofiles",
-    version='v0.4.2',
+    version='v0.4.3',
     description="CPC geospatial file interaction (reading, writing, etc.)",
     long_description=readme + '\n\n' + history,
     author="Mike Charles",

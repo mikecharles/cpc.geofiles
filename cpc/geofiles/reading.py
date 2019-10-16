@@ -15,7 +15,8 @@ import numpy as np
 from .exceptions import ReadingError
 
 
-def read_grib(file, grib_type, grib_var, grib_level, geogrid, yrev=False, grep_fhr=None, debug=False):
+def read_grib(file, grib_type, grib_var, grib_level, geogrid, yrev=False, grep_fhr=None,
+              debug=False, wgrib2_new_grid=False):
     """
     Reads a record from a grib file
 
@@ -68,9 +69,19 @@ def read_grib(file, grib_type, grib_var, grib_level, geogrid, yrev=False, grep_f
         if not shutil.which('wgrib2'):
             raise ReadingError('wgrib2 not installed')
         # Note that the binary data is written to stdout
-        wgrib_call = 'wgrib2 "{}" -match "{}" -match "{}" -match "{}" -end ' \
-                     '-order we:sn -no_header -inv /dev/null -bin -'.format(
-            file, grib_var, grib_level, grep_fhr_str)
+        if wgrib2_new_grid and grib_var in ['UGRD', 'VGRD']:
+            grib_file = 'temp.grb2'
+            wgrib_extra_before = (
+                f'wgrib2 -match "GRD:10 m" {file} -new_grid_winds earth -new_grid ncep grid 3 '
+                f'{grib_file} > /dev/null ;')
+        else:
+            wgrib_extra_before = ''
+            grib_file = file
+        wgrib_call = (
+            f'{wgrib_extra_before} '
+            f'wgrib2 "{grib_file}" -match "{grib_var}" -match "{grib_level}" -match '
+            f'"{grep_fhr_str}" '
+            f'-end -order we:sn -no_header -inv /dev/null -bin - ')
     else:
         raise ReadingError(__name__ + ' requires grib_type to be grib1 or grib2')
     if debug:
@@ -97,6 +108,10 @@ def read_grib(file, grib_type, grib_var, grib_level, geogrid, yrev=False, grep_f
     # Delete the temporary file
     if grib_type == 'grib1':
         os.remove(temp_file)
+    try:
+        os.remove('temp.grb2', )
+    except:
+        pass
     # Flip the data in the y-dimension (if necessary)
     if yrev:
         # Reshape into 2 dimensions
